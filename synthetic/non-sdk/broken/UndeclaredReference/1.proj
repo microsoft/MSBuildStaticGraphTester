@@ -1,0 +1,12 @@
+<Project>
+    <Import Project="protocol.props"/>
+
+    <ItemGroup>
+        <ProjectReference Include="2.proj"/>
+    </ItemGroup>
+
+    <Target Name="Build2" AfterTargets="Build">
+        <MSBuild Projects="3.proj"/>
+        <Message Text="Illegally built 3" Importance="High"/>
+    </Target>
+</Project>
