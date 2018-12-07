@@ -1,0 +1,7 @@
+<Project>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('protocol.props'))"/>
+
+    <Target Name="UndeclaredTarget">
+        <Message Text="Undeclared target :(" Importance="High" />
+    </Target>
+</Project>

@@ -1,0 +1,12 @@
+<Project>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('protocol.props'))"/>
+
+    <ItemGroup>
+        <ProjectReference Include="2.proj"/>
+    </ItemGroup>
+
+    <Target Name="Build2" AfterTargets="Build">
+        <MSBuild Projects="2.proj" Targets="UndeclaredTarget" />
+        <Message Text="Illegally called an undeclared target on 2" Importance="High" />
+    </Target>
+</Project>
