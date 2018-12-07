@@ -1,5 +1,5 @@
 <Project>
-    <Import Project="protocol.props"/>
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('protocol.props'))"/>
     
     <ItemGroup>
         <ProjectReference Include="6.proj"/>
