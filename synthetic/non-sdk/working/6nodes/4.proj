@@ -1,0 +1,7 @@
+<Project>
+    <Import Project="protocol.props"/>
+    
+    <ItemGroup>
+        <ProjectReference Include="6.proj"/>
+    </ItemGroup>
+</Project>
