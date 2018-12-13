@@ -40,12 +40,10 @@ namespace msb
 
             var csprojes = Directory.GetFiles(projectRoot, "*.csproj", SearchOption.AllDirectories);
 
-            //Debugger.Launch();
-
             BuildGraphWithCacheFileRountrip(csprojes, cacheRoot);
         }
 
-        private static void BuildGraphWithCacheFileRountrip(IReadOnlyCollection<string> projectFiles , string cacheRoot)
+        private static void BuildGraphWithCacheFileRountrip(IReadOnlyCollection<string> projectFiles, string cacheRoot)
         {
             var graph = new ProjectGraph(projectFiles);
 
@@ -53,9 +51,9 @@ namespace msb
 
             var entryPointTargets = graph.GetTargetLists(new[] {"Build"});
 
-            var nodes = graph.ProjectNodesTopologicallySorted;
+            var topoSortedNodes = graph.ProjectNodesTopologicallySorted;
 
-            foreach (var node in nodes)
+            foreach (var node in topoSortedNodes)
             {
                 var outputCacheFile = Path.Combine(cacheRoot, node.CacheFileName());
                 var inputCachesFiles = node.ProjectReferences.Select(r => cacheFiles[r]);
@@ -72,7 +70,7 @@ namespace msb
         {
             using (var buildManager = new BuildManager())
             {
-                var parameters = new BuildParameters()
+                var parameters = new BuildParameters
                 {
                     OutputResultsCacheFile = outputCacheFile,
                     InputResultsCacheFiles = inputCachesFiles.ToArray(),
@@ -86,6 +84,6 @@ namespace msb
 
     static class ProjectGraphNodeExtensions
     {
-        public static string CacheFileName(this ProjectGraphNode node) => Path.GetFileNameWithoutExtension(node.ProjectInstance.FullPath) + node.GetHashCode();
+        public static string CacheFileName(this ProjectGraphNode node) => $"{Path.GetFileNameWithoutExtension(node.ProjectInstance.FullPath)}-{node.GetHashCode()}";
     }
 }
