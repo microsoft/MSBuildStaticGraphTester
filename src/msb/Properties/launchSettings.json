@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "msb": {
+      "commandName": "Project",
+      "commandLineArgs": "E:\\projects\\msbuild\\artifacts\\Debug\\bootstrap\\net472\\MSBuild\\Current\\Bin . ConsoleApp1\\ConsoleApp1.csproj"
+    }
+  }
+}
