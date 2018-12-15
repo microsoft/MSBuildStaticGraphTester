@@ -27,7 +27,7 @@ namespace msb
             var cacheRoot = args[1];
             var projectRoot = args[2];
 
-            Trace.Assert(Directory.Exists(projectRoot));
+            Trace.Assert(Directory.Exists(projectRoot), $"Directory does not exist: {projectRoot}");
 
             MSBuildLocator.RegisterMSBuildPath(msbuildBinaries);
 
