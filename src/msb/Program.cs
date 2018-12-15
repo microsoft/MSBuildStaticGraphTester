@@ -27,6 +27,8 @@ namespace msb
             var cacheRoot = args[1];
             var projectRoot = args[2];
 
+            Trace.Assert(Directory.Exists(projectRoot));
+
             MSBuildLocator.RegisterMSBuildPath(msbuildBinaries);
 
             var cacheDirectory = Path.Combine(cacheRoot, Path.GetFileName(projectRoot));
@@ -62,22 +64,34 @@ namespace msb
 
                 var entryTargets = entryPointTargets[node];
 
-                BuildProject(node.ProjectInstance.FullPath, entryTargets.ToArray(), inputCachesFiles, outputCacheFile);
+                BuildProject(node.ProjectInstance.FullPath, node.GlobalProperties, entryTargets.ToArray(), inputCachesFiles, outputCacheFile);
             }
         }
 
-        private static void BuildProject(string projectInstanceFullPath, string[] entryTargets, IEnumerable<string> inputCachesFiles, string outputCacheFile)
+        private static void BuildProject(
+            string projectInstanceFullPath,
+            IReadOnlyDictionary<string, string> globalProperties,
+            string[] entryTargets,
+            IEnumerable<string> inputCachesFiles,
+            string outputCacheFile)
         {
             using (var buildManager = new BuildManager())
             {
-                var parameters = new BuildParameters
+                var buildParameters = new BuildParameters
                 {
                     OutputResultsCacheFile = outputCacheFile,
                     InputResultsCacheFiles = inputCachesFiles.ToArray(),
-                    Loggers = new []{new ConsoleLogger(LoggerVerbosity.Normal)}
+                    Loggers = new[] {new ConsoleLogger(LoggerVerbosity.Normal)}
                 };
 
-                var result = buildManager.Build(parameters, new BuildRequestData(projectInstanceFullPath, new Dictionary<string, string>(), "Current", entryTargets, null));
+                var buildRequestData = new BuildRequestData(
+                    projectInstanceFullPath,
+                    globalProperties.ToDictionary(k => k.Key, k => k.Value),
+                    "Current",
+                    entryTargets,
+                    null);
+
+                var result = buildManager.Build(buildParameters, buildRequestData);
             }
         }
     }
