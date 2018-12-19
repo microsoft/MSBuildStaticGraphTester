@@ -3,6 +3,7 @@
 
 # transient artefacts
 caches/
+generatedProjects/
 
 # User-specific files
 *.suo

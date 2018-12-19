@@ -10,14 +10,19 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Graph;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
-using Microsoft.Build.Tasks.Deployment.Bootstrapper;
-using Microsoft.Build.Utilities;
 
 namespace msb
 {
     internal class Program
     {
+        private const string SingleProjectArg = "-singleProject";
+        private const string CacheRoundtripArg = "-buildWithCacheRoundtrip";
+        private const string NoConsoleLoggerArg = "-noConsoleLogger";
+        private const int MinimumArgumentCount = 4;
+
         private static readonly bool DebugBuild = false;
+        private static bool _noConsoleLogger;
+        private static int _executionTypeIndex;
 
         private class EvaluationLogger : ILogger
         {
@@ -93,40 +98,90 @@ namespace msb
 
         private static void Main(string[] args)
         {
-            if (args.Length != 3)
+            if (args.Length < MinimumArgumentCount || (args.Length > 0 && args[0].IndexOfAny(new[] {'h', '?'}) >= 0))
             {
-                Console.WriteLine("usage: <msbuild binaries root> <cache root> <project root>");
+                Console.WriteLine($"usage: <msbuild binaries root> [{NoConsoleLoggerArg}] {SingleProjectArg} <project file> <cache root>");
+                Console.WriteLine($"usage: <msbuild binaries root> [{NoConsoleLoggerArg}] {CacheRoundtripArg} <cache root> <project root> [project file extension without dot]");
                 return;
             }
 
             var msbuildBinaries = args[0];
-            var cacheRoot = args[1];
-            var projectRoot = args[2];
+            Trace.Assert(Directory.Exists(msbuildBinaries));
+            MSBuildLocator.RegisterMSBuildPath(msbuildBinaries);
+
+            _noConsoleLogger = args[1] == NoConsoleLoggerArg;
+
+            //Debugger.Launch();
+
+            _executionTypeIndex = _noConsoleLogger
+                ? 2
+                : 1;
+
+            switch (args[_executionTypeIndex])
+            {
+                case SingleProjectArg:
+                    BuildSingleProjectWithCaches(args);
+                    break;
+                case CacheRoundtripArg:
+                    BuildWithCacheRoundtrip(args);
+                    break;
+                default:
+                    throw new NotImplementedException();
+            }
+        }
+
+        private static void BuildSingleProjectWithCaches(string[] args)
+        {
+            Trace.Assert(_executionTypeIndex + 2 == args.Length - 1);
+            Trace.Assert(args[_executionTypeIndex] == SingleProjectArg);
+
+            var projectFile = args[_executionTypeIndex + 1];
+            var cacheRoot = args[_executionTypeIndex + 2];
+
+            Trace.Assert(File.Exists(projectFile));
+            Trace.Assert(Directory.Exists(cacheRoot));
+
+            var cacheFiles = Directory.GetFiles(cacheRoot);
+
+            BuildProject(projectFile, null, null, cacheFiles, null);
+        }
+
+        private static void BuildWithCacheRoundtrip(string[] args)
+        {
+            Trace.Assert(_executionTypeIndex + 2 <= args.Length - 1);
+            Trace.Assert(args[_executionTypeIndex] == CacheRoundtripArg);
+
+            var cacheRootIndex = _executionTypeIndex + 1;
+            var projectRootIndex = _executionTypeIndex + 2;
+            var projectExtensionIndex = _executionTypeIndex + 3;
+
+            var cacheRoot = args[cacheRootIndex];
+            var projectRoot = args[projectRootIndex];
+            var projectFileExtension = projectExtensionIndex == args.Length - 1
+                ? args[projectExtensionIndex]
+                : "csproj";
 
             Trace.Assert(Directory.Exists(projectRoot), $"Directory does not exist: {projectRoot}");
-
-            MSBuildLocator.RegisterMSBuildPath(msbuildBinaries);
+            Trace.Assert(projectFileExtension[0] != '.');
 
             if (DebugBuild)
             {
                 Environment.SetEnvironmentVariable("MSBUILDLOGIMPORTS", "1");
             }
 
-            var cacheDirectory = Path.Combine(cacheRoot, Path.GetFileName(projectRoot));
-
-            if (Directory.Exists(cacheDirectory))
+            if (Directory.Exists(cacheRoot))
             {
-                Directory.Delete(cacheDirectory, true);
+                Directory.Delete(cacheRoot, true);
             }
 
-            Directory.CreateDirectory(cacheDirectory);
+            Directory.CreateDirectory(cacheRoot);
 
-            var csprojes = Directory.GetFiles(projectRoot, "*.csproj", SearchOption.AllDirectories);
+            var projectFiles = Directory.GetFiles(projectRoot, $"*.{projectFileExtension}", SearchOption.AllDirectories);
 
-            BuildGraphWithCacheFileRountrip(csprojes, cacheRoot);
+            BuildGraphWithCacheFileRoundtrip(projectFiles, cacheRoot);
         }
 
-        private static void BuildGraphWithCacheFileRountrip(IReadOnlyCollection<string> projectFiles, string cacheRoot)
+        private static void BuildGraphWithCacheFileRoundtrip(IReadOnlyCollection<string> projectFiles, string cacheRoot)
         {
             ProjectGraph graph;
 
@@ -145,7 +200,7 @@ namespace msb
 
             foreach (var node in topoSortedNodes)
             {
-                var outputCacheFile = Path.Combine(cacheRoot, node.CacheFileName());
+                var outputCacheFile = graph.GraphRoots.Contains(node) ? null : Path.Combine(cacheRoot, node.CacheFileName());
                 var inputCachesFiles = node.ProjectReferences.Select(r => cacheFiles[r]);
 
                 cacheFiles[node] = outputCacheFile;
@@ -165,14 +220,28 @@ namespace msb
             IEnumerable<string> inputCachesFiles,
             string outputCacheFile)
         {
+            globalProperties = globalProperties ?? new Dictionary<string, string>();
+            entryTargets = entryTargets ?? new string[0];
+
             using (var buildManager = new BuildManager())
             {
+                var loggers = new List<ILogger>();
+
+                if (!_noConsoleLogger)
+                {
+                    loggers.Add(new ConsoleLogger(LoggerVerbosity.Normal));
+                }
+
                 var buildParameters = new BuildParameters
                 {
-                    OutputResultsCacheFile = outputCacheFile,
                     InputResultsCacheFiles = inputCachesFiles.ToArray(),
-                    Loggers = new[] { new ConsoleLogger(LoggerVerbosity.Normal) }
+                    Loggers = loggers
                 };
+
+                if (outputCacheFile != null)
+                {
+                    buildParameters.OutputResultsCacheFile = outputCacheFile;
+                }
 
                 var buildRequestData = new BuildRequestData(
                     projectInstanceFullPath,
