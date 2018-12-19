@@ -4,4 +4,4 @@ set msbuild="E:\projects\msbuild\artifacts\Debug\bootstrap\net472\MSBuild\Curren
 
 echo %msbuild%
 
-E:\projects\MSBuildTestProjects\src\msb\bin\Debug\net472\msb.exe %msbuild% "E:\projects\MSBuildTestProjects\synthetic\sdk\working\old6\caches" "E:\projects\MSBuildTestProjects\synthetic\sdk\working\old6"
+E:\projects\MSBuildTestProjects\src\msb\bin\Debug\net472\msb.exe %msbuild% "%~dp0caches" %~dp0
