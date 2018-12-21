@@ -18,10 +18,10 @@ namespace msb
         private const string SingleProjectArg = "-singleProject";
         private const string CacheRoundtripArg = "-buildWithCacheRoundtrip";
         private const string NoConsoleLoggerArg = "-noConsoleLogger";
-        private const int MinimumArgumentCount = 4;
 
         private static readonly bool DebugBuild = false;
         private static bool _noConsoleLogger;
+        private static int _minimumArgumentCount;
         private static int _executionTypeIndex;
 
         private class EvaluationLogger : ILogger
@@ -96,41 +96,37 @@ namespace msb
             }
         }
 
-        private static void Main(string[] args)
+        private static int Main(string[] args)
         {
-            if (args.Length < MinimumArgumentCount || (args.Length > 0 && args[0].IndexOfAny(new[] {'h', '?'}) >= 0))
+            _minimumArgumentCount = 5;
+
+            if (args.Length < _minimumArgumentCount || (args.Length > 0 && args[0].IndexOfAny(new[] {'h', '?'}) >= 0))
             {
-                Console.WriteLine($"usage: <msbuild binaries root> [{NoConsoleLoggerArg}] {SingleProjectArg} <project file> <cache root>");
-                Console.WriteLine($"usage: <msbuild binaries root> [{NoConsoleLoggerArg}] {CacheRoundtripArg} <cache root> <project root> [project file extension without dot]");
-                return;
+                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {SingleProjectArg} <project file> <cache root>");
+                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {CacheRoundtripArg} <project root> <cache root> [project file extension without dot]");
+                return 0;
             }
 
             var msbuildBinaries = args[0];
             Trace.Assert(Directory.Exists(msbuildBinaries));
             MSBuildLocator.RegisterMSBuildPath(msbuildBinaries);
 
-            _noConsoleLogger = args[1] == NoConsoleLoggerArg;
+            _noConsoleLogger = bool.Parse(args[1]) == false;
 
-            //Debugger.Launch();
-
-            _executionTypeIndex = _noConsoleLogger
-                ? 2
-                : 1;
+            _executionTypeIndex = 2;
 
             switch (args[_executionTypeIndex])
             {
                 case SingleProjectArg:
-                    BuildSingleProjectWithCaches(args);
-                    break;
+                    return BuildSingleProjectWithCaches(args);
                 case CacheRoundtripArg:
-                    BuildWithCacheRoundtrip(args);
-                    break;
+                    return BuildWithCacheRoundtrip(args);
                 default:
                     throw new NotImplementedException();
             }
         }
 
-        private static void BuildSingleProjectWithCaches(string[] args)
+        private static int BuildSingleProjectWithCaches(string[] args)
         {
             Trace.Assert(_executionTypeIndex + 2 == args.Length - 1);
             Trace.Assert(args[_executionTypeIndex] == SingleProjectArg);
@@ -143,16 +139,20 @@ namespace msb
 
             var cacheFiles = Directory.GetFiles(cacheRoot);
 
-            BuildProject(projectFile, null, null, cacheFiles, null);
+            var result = BuildProject(projectFile, null, null, cacheFiles, null);
+
+            return result.OverallResult == BuildResultCode.Success
+                ? 0
+                : 1;
         }
 
-        private static void BuildWithCacheRoundtrip(string[] args)
+        private static int BuildWithCacheRoundtrip(string[] args)
         {
             Trace.Assert(_executionTypeIndex + 2 <= args.Length - 1);
             Trace.Assert(args[_executionTypeIndex] == CacheRoundtripArg);
 
-            var cacheRootIndex = _executionTypeIndex + 1;
-            var projectRootIndex = _executionTypeIndex + 2;
+            var projectRootIndex = _executionTypeIndex + 1;
+            var cacheRootIndex = _executionTypeIndex + 2;
             var projectExtensionIndex = _executionTypeIndex + 3;
 
             var cacheRoot = args[cacheRootIndex];
@@ -178,12 +178,18 @@ namespace msb
 
             var projectFiles = Directory.GetFiles(projectRoot, $"*.{projectFileExtension}", SearchOption.AllDirectories);
 
-            BuildGraphWithCacheFileRoundtrip(projectFiles, cacheRoot);
+            Trace.Assert(projectFiles.Length > 0, $"no projects found in {projectRoot}");
+
+            return BuildGraphWithCacheFileRoundtrip(projectFiles, cacheRoot)
+                ? 0
+                : 1;
         }
 
-        private static void BuildGraphWithCacheFileRoundtrip(IReadOnlyCollection<string> projectFiles, string cacheRoot)
+        private static bool BuildGraphWithCacheFileRoundtrip(IReadOnlyCollection<string> projectFiles, string cacheRoot)
         {
             ProjectGraph graph;
+
+            var success = true;
 
             using (var collection = new ProjectCollection())
             {
@@ -201,7 +207,7 @@ namespace msb
             foreach (var node in topoSortedNodes)
             {
                 var outputCacheFile = graph.GraphRoots.Contains(node) ? null : Path.Combine(cacheRoot, node.CacheFileName());
-                var inputCachesFiles = node.ProjectReferences.Select(r => cacheFiles[r]);
+                var inputCachesFiles = node.ProjectReferences.Select(r => cacheFiles[r]).ToArray();
 
                 cacheFiles[node] = outputCacheFile;
 
@@ -209,15 +215,22 @@ namespace msb
 
                 PrintProjectInstanceContents(node);
 
-                BuildProject(node.ProjectInstance.FullPath, node.GlobalProperties, entryTargets.ToArray(), inputCachesFiles, outputCacheFile);
+                var result = BuildProject(node.ProjectInstance.FullPath, node.GlobalProperties, entryTargets.ToArray(), inputCachesFiles, outputCacheFile);
+
+                if (result.OverallResult == BuildResultCode.Failure)
+                {
+                    success = false;
+                }
             }
+
+            return success;
         }
 
-        private static void BuildProject(
+        private static BuildResult BuildProject(
             string projectInstanceFullPath,
             IReadOnlyDictionary<string, string> globalProperties,
             string[] entryTargets,
-            IEnumerable<string> inputCachesFiles,
+            string[] inputCachesFiles,
             string outputCacheFile)
         {
             globalProperties = globalProperties ?? new Dictionary<string, string>();
@@ -234,7 +247,7 @@ namespace msb
 
                 var buildParameters = new BuildParameters
                 {
-                    InputResultsCacheFiles = inputCachesFiles.ToArray(),
+                    InputResultsCacheFiles = inputCachesFiles,
                     Loggers = loggers
                 };
 
@@ -250,7 +263,7 @@ namespace msb
                     entryTargets,
                     null);
 
-                var result = buildManager.Build(buildParameters, buildRequestData);
+                return buildManager.Build(buildParameters, buildRequestData);
             }
         }
 

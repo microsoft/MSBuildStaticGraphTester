@@ -45,4 +45,10 @@ $rootProject = [System.String]::Format($projectWithReferences, $sb)
 
 echo $rootProject > "$root\0.proj"
 
-..\..\..\..\src\msb\bin\Debug\net472\msb.exe "E:\projects\msbuild\artifacts\Debug\bootstrap\net472\MSBuild\Current\Bin" "-noConsoleLogger" "-buildWithCacheRoundtrip" $caches $root "proj"
+. ..\..\..\Test.ps1
+
+# generate caches for references
+BuildWithCacheRoundtrip "false" $root $caches "proj"
+
+# build top project in isolation reusing the caches generated in the previous step
+Measure-Command { BuildSingleProject "false" "$root\0.proj" $caches }
