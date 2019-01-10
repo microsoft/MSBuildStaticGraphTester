@@ -245,6 +245,13 @@ namespace msb
                     loggers.Add(new ConsoleLogger(LoggerVerbosity.Normal));
                 }
 
+                if (DebugBuild)
+                {
+                    var binaryLogger = new BinaryLogger {Parameters = $"{Path.GetFileName(projectInstanceFullPath)}.binlog"};
+
+                    loggers.Add(binaryLogger);
+                }
+
                 var buildParameters = new BuildParameters
                 {
                     InputResultsCacheFiles = inputCachesFiles,
