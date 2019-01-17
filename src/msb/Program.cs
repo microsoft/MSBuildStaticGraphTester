@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -213,9 +215,12 @@ namespace msb
 
                 var entryTargets = entryPointTargets[node];
 
-                PrintProjectInstanceContents(node);
+                var buildData = node.ComputeBuildData(entryTargets);
 
-                var result = BuildProject(node.ProjectInstance.FullPath, node.GlobalProperties, entryTargets.ToArray(), inputCachesFiles, outputCacheFile);
+                var actualEntryTargets = ExpandDefaultTargets(node.ProjectInstance, buildData.Targets);
+
+
+                var result = BuildProject(node.ProjectInstance.FullPath, buildData.GlobalProperties, buildData.Targets, inputCachesFiles, outputCacheFile);
 
                 if (result.OverallResult == BuildResultCode.Failure)
                 {
@@ -229,12 +234,12 @@ namespace msb
         private static BuildResult BuildProject(
             string projectInstanceFullPath,
             IReadOnlyDictionary<string, string> globalProperties,
-            string[] entryTargets,
+            IReadOnlyCollection<string> entryTargets,
             string[] inputCachesFiles,
             string outputCacheFile)
         {
             globalProperties = globalProperties ?? new Dictionary<string, string>();
-            entryTargets = entryTargets ?? new string[0];
+            entryTargets = entryTargets ?? Array.Empty<string>();
 
             using (var buildManager = new BuildManager())
             {
@@ -247,15 +252,32 @@ namespace msb
 
                 if (DebugBuild)
                 {
-                    var binaryLogger = new BinaryLogger {Parameters = $"{Path.GetFileName(projectInstanceFullPath)}.binlog"};
+                    Environment.SetEnvironmentVariable("MSBUILDTARGETOUTPUTLOGGING", "true");
+                    Environment.SetEnvironmentVariable("MSBUILDLOGIMPORTS", "1");
+
+                    var binaryLogger = new BinaryLogger
+                    {
+                        Parameters = $"{Path.GetFileName(projectInstanceFullPath)}.binlog",
+                        Verbosity = LoggerVerbosity.Detailed
+                    };
 
                     loggers.Add(binaryLogger);
+
+                    var fileLogger = new FileLogger
+                    {
+                        Parameters = $"logfile={Path.GetFileName(projectInstanceFullPath)}.log",
+                        Verbosity = LoggerVerbosity.Detailed
+                    };
+
+                    loggers.Add(fileLogger);
                 }
 
                 var buildParameters = new BuildParameters
                 {
                     InputResultsCacheFiles = inputCachesFiles,
-                    Loggers = loggers
+                    Loggers = loggers,
+                    LogTaskInputs = true,
+                    LogInitialPropertiesAndItems = true
                 };
 
                 if (outputCacheFile != null)
@@ -267,11 +289,34 @@ namespace msb
                     projectInstanceFullPath,
                     globalProperties.ToDictionary(k => k.Key, k => k.Value),
                     "Current",
-                    entryTargets,
+                    entryTargets.ToArray(),
                     null);
 
                 return buildManager.Build(buildParameters, buildRequestData);
             }
+        }
+
+        private static ImmutableList<string> ExpandDefaultTargets(ProjectInstance project, IReadOnlyCollection<string> targets)
+        {
+            var targetsList = targets.ToImmutableList();
+
+            int i = 0;
+            while (i < targets.Count)
+            {
+                if (targetsList[i].Equals(".default", StringComparison.OrdinalIgnoreCase))
+                {
+                    targetsList = targetsList
+                        .RemoveAt(i)
+                        .InsertRange(i, project.DefaultTargets);
+                    i += project.DefaultTargets.Count;
+                }
+                else
+                {
+                    i++;
+                }
+            }
+
+            return targetsList;
         }
 
         public static void PrintProjectInstanceContents(ProjectGraphNode node)
@@ -299,11 +344,19 @@ namespace msb
         }
     }
 
-    internal static class ProjectGraphNodeExtensions
+    internal static class Extensions
     {
         public static string CacheFileName(this ProjectGraphNode node)
         {
             return $"{Path.GetFileNameWithoutExtension(node.ProjectInstance.FullPath)}-{node.GetHashCode()}";
+        }
+
+        public static void AddAll(this IDictionary<string, string> a, IReadOnlyDictionary<string, string> b)
+        {
+            foreach (var kvp in b)
+            {
+                a[kvp.Key] = kvp.Value;
+            }
         }
     }
 }

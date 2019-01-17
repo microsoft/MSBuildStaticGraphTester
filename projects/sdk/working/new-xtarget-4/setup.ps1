@@ -1,0 +1,1 @@
+dotnet restore $PSScriptRoot\new-xtarget-4.sln

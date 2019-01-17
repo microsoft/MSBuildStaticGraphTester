@@ -1,0 +1,1 @@
+dotnet restore $PSScriptRoot\wpf\wpf.csproj
