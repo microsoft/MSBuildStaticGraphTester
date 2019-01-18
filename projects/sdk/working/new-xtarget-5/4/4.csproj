@@ -1,5 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <ItemGroup>
+    <ProjectReference Include="..\5\5.csproj" />
+  </ItemGroup>
+
   <PropertyGroup>
     <RootNamespace>_4</RootNamespace>
     <TargetFrameworks>netstandard1.0;netstandard1.2;netstandard1.4;netstandard1.6</TargetFrameworks>

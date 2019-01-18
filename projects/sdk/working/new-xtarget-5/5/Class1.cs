@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace _2
+namespace _5
 {
     public class Class1
     {

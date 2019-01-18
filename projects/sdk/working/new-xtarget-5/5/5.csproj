@@ -1,0 +1,8 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>_5</RootNamespace>
+    <TargetFrameworks>netstandard1.0</TargetFrameworks>
+  </PropertyGroup>
+
+</Project>

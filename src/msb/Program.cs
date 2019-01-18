@@ -277,7 +277,8 @@ namespace msb
                     InputResultsCacheFiles = inputCachesFiles,
                     Loggers = loggers,
                     LogTaskInputs = true,
-                    LogInitialPropertiesAndItems = true
+                    LogInitialPropertiesAndItems = true,
+                    MaxNodeCount = 1
                 };
 
                 if (outputCacheFile != null)

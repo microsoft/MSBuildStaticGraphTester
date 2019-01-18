@@ -47,6 +47,7 @@ function SetupTestProject([string]$projectRoot)
 
 if ($projectExtension) {
     PrintHeader $invocationDirectory
+    SetupTestProject $invocationDirectory
     BuildWithCacheRoundtripDefault "$invocationDirectory" $projectExtension
     exit
 }
