@@ -1,5 +1,8 @@
 ﻿using System;
-using _2;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace _1
 {
@@ -7,7 +10,6 @@ namespace _1
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Hello World!");
             _2.Class1.M();
         }
     }

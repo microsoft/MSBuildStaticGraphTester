@@ -174,6 +174,7 @@ namespace msb
             if (Directory.Exists(cacheRoot))
             {
                 Directory.Delete(cacheRoot, true);
+                Trace.Assert(!Directory.Exists(cacheRoot));
             }
 
             Directory.CreateDirectory(cacheRoot);
@@ -195,7 +196,7 @@ namespace msb
 
             using (var collection = new ProjectCollection())
             {
-                collection.RegisterLogger(new EvaluationLogger());
+                //collection.RegisterLogger(new EvaluationLogger());
 
                 graph = new ProjectGraph(projectFiles, null, collection);
             }
@@ -208,6 +209,7 @@ namespace msb
 
             foreach (var node in topoSortedNodes)
             {
+
                 var outputCacheFile = graph.GraphRoots.Contains(node) ? null : Path.Combine(cacheRoot, node.CacheFileName());
                 var inputCachesFiles = node.ProjectReferences.Select(r => cacheFiles[r]).ToArray();
 
@@ -216,9 +218,6 @@ namespace msb
                 var entryTargets = entryPointTargets[node];
 
                 var buildData = node.ComputeBuildData(entryTargets);
-
-                var actualEntryTargets = ExpandDefaultTargets(node.ProjectInstance, buildData.Targets);
-
 
                 var result = BuildProject(node.ProjectInstance.FullPath, buildData.GlobalProperties, buildData.Targets, inputCachesFiles, outputCacheFile);
 
@@ -286,38 +285,17 @@ namespace msb
                     buildParameters.OutputResultsCacheFile = outputCacheFile;
                 }
 
+                var actualGlobalProperties = globalProperties.ToDictionary(k => k.Key, k => k.Value);
+
                 var buildRequestData = new BuildRequestData(
                     projectInstanceFullPath,
-                    globalProperties.ToDictionary(k => k.Key, k => k.Value),
+                    actualGlobalProperties,
                     "Current",
                     entryTargets.ToArray(),
                     null);
 
                 return buildManager.Build(buildParameters, buildRequestData);
             }
-        }
-
-        private static ImmutableList<string> ExpandDefaultTargets(ProjectInstance project, IReadOnlyCollection<string> targets)
-        {
-            var targetsList = targets.ToImmutableList();
-
-            int i = 0;
-            while (i < targets.Count)
-            {
-                if (targetsList[i].Equals(".default", StringComparison.OrdinalIgnoreCase))
-                {
-                    targetsList = targetsList
-                        .RemoveAt(i)
-                        .InsertRange(i, project.DefaultTargets);
-                    i += project.DefaultTargets.Count;
-                }
-                else
-                {
-                    i++;
-                }
-            }
-
-            return targetsList;
         }
 
         public static void PrintProjectInstanceContents(ProjectGraphNode node)

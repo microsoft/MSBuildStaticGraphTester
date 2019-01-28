@@ -57,13 +57,23 @@ $workingProjectRoots = @{
     "$PSScriptRoot\sdk\working" = "csproj"
 }
 
-foreach ($projectRoot in $workingProjectRoots.Keys)
+$brokenProjects = @("oldWPF1", "oldWPF-new-2")
+
+foreach ($directoryWithProjects in $workingProjectRoots.Keys)
 {
-    foreach ($project in Get-ChildItem -Directory $projectRoot)
+    $projectExtension = $workingProjectRoots[$directoryWithProjects]
+
+    foreach ($projectRoot in Get-ChildItem -Directory $directoryWithProjects)
     {
-        PrintHeader $project.FullName
-        SetupTestProject $project.FullName
-        BuildWithCacheRoundtripDefault $project.FullName $workingProjectRoots[$projectRoot]
+        if ($brokenProjects.Contains($projectRoot.Name))
+        {
+            PrintHeader "Skipping $($projectRoot.FullName)"
+            continue;
+        }
+
+        PrintHeader $projectRoot.FullName
+        SetupTestProject $projectRoot.FullName
+        BuildWithCacheRoundtripDefault $projectRoot.FullName $projectExtension
 
         if ($LASTEXITCODE -ne 0)
         {
