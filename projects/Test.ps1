@@ -18,6 +18,10 @@ function BuildWithCacheRoundtrip([string] $useConsoleLogger, [string] $projectRo
     & $msbuildapp $msbuildBinaries $useConsolelogger "-buildWithCacheRoundtrip" $projectRoot $cacheRoot $projectFileExtension
 }
 
+function BuildwithBuildManager([string] $projectRoot, [string] $projectFileExtension){
+    & $msbuildapp $msbuildBinaries "true" "-buildWithBuildManager" $projectRoot $projectFileExtension
+}
+
 function BuildSingleProject($useConsoleLogger, $projectFile, $cacheRoot){
     # echo "$msbuildapp $msbuildBinaries -buildWithCacheRoundtrip $invokingScriptDirectory\caches $invokingScriptDirectory"
 
@@ -45,10 +49,29 @@ function SetupTestProject([string]$projectRoot)
     }
 }
 
+function TestProject([string] $projectRoot, [string] $projectExtension)
+{
+    PrintHeader "BuildManager: $projectRoot"
+    SetupTestProject $projectRoot
+    BuildWithBuildManager $projectRoot $projectExtension
+
+    if ($LASTEXITCODE -ne 0)
+    {
+        exit
+    }
+
+    PrintHeader "Cache roundtrip: $projectRoot"
+    SetupTestProject $projectRoot
+    BuildWithCacheRoundtripDefault $projectRoot $projectExtension
+
+    if ($LASTEXITCODE -ne 0)
+    {
+        exit
+    }
+}
+
 if ($projectExtension) {
-    PrintHeader $invocationDirectory
-    SetupTestProject $invocationDirectory
-    BuildWithCacheRoundtripDefault "$invocationDirectory" $projectExtension
+    TestProject $invocationDirectory $projectExtension
     exit
 }
 
@@ -71,13 +94,6 @@ foreach ($directoryWithProjects in $workingProjectRoots.Keys)
             continue;
         }
 
-        PrintHeader $projectRoot.FullName
-        SetupTestProject $projectRoot.FullName
-        BuildWithCacheRoundtripDefault $projectRoot.FullName $projectExtension
-
-        if ($LASTEXITCODE -ne 0)
-        {
-            exit
-        }
+        TestProject $projectRoot.FullName $projectExtension
     }
 }
