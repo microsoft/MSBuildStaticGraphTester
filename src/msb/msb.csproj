@@ -16,7 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Build.Locator" Version="1.1.2"/>
-    <PackageReference Include="Microsoft.Build.Runtime" Version="16.0.0-preview.381" ExcludeAssets="runtime"/>
+    <PackageReference Include="Microsoft.Build.Runtime" Version="16.0.0-preview.383" ExcludeAssets="runtime"/>
     <PackageReference Include="System.Collections.Immutable" Version="1.5.0"/>
   </ItemGroup>
 
