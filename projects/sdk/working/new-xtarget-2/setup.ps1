@@ -1,1 +1,1 @@
-dotnet restore $PSScriptRoot\1\1.csproj
+dotnet restore $PSScriptRoot\new-xtarget-2.sln
