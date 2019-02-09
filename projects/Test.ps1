@@ -1,8 +1,11 @@
 param([string]$projectExtension)
 
 $invocationDirectory=(pwd).Path
-$msbuildBinaries="E:\projects\msbuild\artifacts\bin\bootstrap\net472\MSBuild\Current\Bin"
-$msbuildApp="E:\projects\MSBuildTestProjects\src\msb\bin\Debug\net472\msb.exe"
+$msbuildBinaries=$env:MSBuildBootstrapDirectory
+$msbuildApp=$env:GraphTestApp
+
+echo "Using msbuild binaries from: $msbuildBinaries"
+echo "Using test app binaries from: $msbuildApp"
 
 function Combine([string]$root, [string]$subdirectory)
 {
