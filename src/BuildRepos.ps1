@@ -1,7 +1,7 @@
 param (
     [switch]$BuildSdk,
     [switch]$BuildMSBuild,
-    [switch]$DogfoodSdk,
+    [switch]$RedirectEnvironmentToBuildOutputs,
     [string]$Repos = [System.IO.Path]::Combine($PSScriptRoot, "rps"),
     [string]$MSBuildBranch = "graphCrossTargetting",
     [string]$MSBuildRepoAddress = "https://github.com/cdmihai/msbuild.git",
@@ -72,7 +72,7 @@ function RemoveItemIfExists([string] $item)
     }
 }
 
-function ResetEnvironment()
+function ResetUnwantedBuildScriptSideEffects()
 {
     $env:DOTNET_INSTALL_DIR = ""
     $env:DOTNET_MULTILEVEL_LOOKUP = ""
@@ -90,31 +90,32 @@ function ResetEnvironment()
 
 if ($BuildMSBuild)
 {
-    ResetEnvironment
+    ResetUnwantedBuildScriptSideEffects
 
     $MSBuildRepo = Combine $Repos "MSBuild"
 
     CloneRepoIfNecessary $MSBuildRepoAddress $MSBuildBranch $MSBuildRepo
     BuildMSBuildRepo $MSBuildRepo
-
-    $env:MSBuildBootstrapDirectory = "$msbuildRepo\artifacts\bin\bootstrap\net472\MSBuild\Current\Bin"
-    $env:MSBuildNugetPackages = "$msbuildRepo\artifacts\packages\$Configuration\Shipping"
-    $env:MSBuildNugetVersion = GetNugetVersionFromFirstFileName $env:MSBuildNugetPackages
 }
 
 $SdkRepo = Combine $Repos "sdk"
 
 if ($BuildSdk)
 {
-    ResetEnvironment
+    ResetUnwantedBuildScriptSideEffects
 
     CloneRepoIfNecessary $SDKRepoAddress $SDKBranch $SdkRepo
     BuildSdkRepo $SdkRepo
 }
 
-if ($DogfoodSdk)
+if ($RedirectEnvironmentToBuildOutputs)
 {
-    ResetEnvironment
+    ResetUnwantedBuildScriptSideEffects
 
     DogfoodSdk $SdkRepo
+
+    $env:MSBuildBootstrapDirectory = Combine $msbuildRepo "artifacts\bin\bootstrap\net472\MSBuild\Current\Bin"
+    $env:MSBuildBootstrapExe = Combine $env:MSBuildBootstrapDirectory "MSBuild.exe"
+    $env:MSBuildNugetPackages = Combine $msbuildRepo "artifacts\packages\$Configuration\Shipping"
+    $env:MSBuildNugetVersion = GetNugetVersionFromFirstFileName $env:MSBuildNugetPackages
 }

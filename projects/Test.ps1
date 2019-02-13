@@ -41,6 +41,8 @@ function PrintHeader([string]$text)
 
 function SetupTestProject([string]$projectRoot)
 {
+    echo "Cleaning $projectRoot"
+
     Remove-Item -Force -Recurse "$projectRoot\**\bin"
     Remove-Item -Force -Recurse "$projectRoot\**\obj"
 
@@ -48,6 +50,7 @@ function SetupTestProject([string]$projectRoot)
 
     if (Test-Path $setupScript)
     {
+        echo "running $setupScript"
         & $setupScript
     }
 }

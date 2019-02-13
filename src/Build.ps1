@@ -1,4 +1,4 @@
-& "$PSScriptRoot\BuildRepos.ps1" -configuration Release -BuildMSBuild -BuildSdk -DogfoodSdk
+& "$PSScriptRoot\BuildRepos.ps1" -configuration Release -BuildMSBuild -BuildSdk -RedirectEnvironmentToBuildOutputs
 
 & "$env:MSBuildBootstrapDirectory/msbuild.exe" /restore "$PSScriptRoot\msb\msb.csproj"
 

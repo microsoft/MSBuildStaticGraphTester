@@ -1,1 +1,1 @@
-dotnet restore $PSScriptRoot\new-xtarget-5.sln
+& $env:MSBuildBootstrapExe /t:restore $PSScriptRoot\new-xtarget-5.sln

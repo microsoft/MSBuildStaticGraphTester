@@ -1,1 +1,1 @@
-dotnet restore $PSScriptRoot\wpf\wpf.csproj
+& $env:MSBuildBootstrapExe /t:restore $PSScriptRoot\wpf\wpf.csproj
