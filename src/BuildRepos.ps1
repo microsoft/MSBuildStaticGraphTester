@@ -88,11 +88,11 @@ function ResetUnwantedBuildScriptSideEffects()
     RemoveItemIfExists "Variable:_BuildTool"
 }
 
+$MSBuildRepo = Combine $Repos "MSBuild"
+
 if ($BuildMSBuild)
 {
     ResetUnwantedBuildScriptSideEffects
-
-    $MSBuildRepo = Combine $Repos "MSBuild"
 
     CloneRepoIfNecessary $MSBuildRepoAddress $MSBuildBranch $MSBuildRepo
     BuildMSBuildRepo $MSBuildRepo
@@ -120,7 +120,7 @@ if ($RedirectEnvironmentToBuildOutputs)
     $env:MSBuildNugetPackages = Combine $msbuildRepo "artifacts\packages\$Configuration\Shipping"
     $env:MSBuildNugetVersion = GetNugetVersionFromFirstFileName $env:MSBuildNugetPackages
 
-    $SdkRepoBinDirectory = Combine $SdkRepo "artifacts\bin\Release\Sdks"
+    $env:SdkRepoBinDirectory = Combine $SdkRepo "artifacts\bin\Release\Sdks"
 
     $env:AllowedReads = "$env:MSBuildBootstrapRoot;$SdkRepoBinDirectory"
 }
