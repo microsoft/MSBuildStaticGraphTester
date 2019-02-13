@@ -114,8 +114,13 @@ if ($RedirectEnvironmentToBuildOutputs)
 
     DogfoodSdk $SdkRepo
 
-    $env:MSBuildBootstrapDirectory = Combine $msbuildRepo "artifacts\bin\bootstrap\net472\MSBuild\Current\Bin"
-    $env:MSBuildBootstrapExe = Combine $env:MSBuildBootstrapDirectory "MSBuild.exe"
+    $env:MSBuildBootstrapRoot = Combine $msbuildRepo "artifacts\bin\bootstrap\net472"
+    $env:MSBuildBootstrapBinDirectory = Combine $env:MSBuildBootstrapRoot "MSBuild\Current\Bin"
+    $env:MSBuildBootstrapExe = Combine $env:MSBuildBootstrapBinDirectory "MSBuild.exe"
     $env:MSBuildNugetPackages = Combine $msbuildRepo "artifacts\packages\$Configuration\Shipping"
     $env:MSBuildNugetVersion = GetNugetVersionFromFirstFileName $env:MSBuildNugetPackages
+
+    $SdkRepoBinDirectory = Combine $SdkRepo "artifacts\bin\Release\Sdks"
+
+    $env:AllowedReads = "$env:MSBuildBootstrapRoot;$SdkRepoBinDirectory"
 }

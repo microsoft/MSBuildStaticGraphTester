@@ -1,7 +1,7 @@
 param([string]$projectExtension)
 
 $invocationDirectory=(pwd).Path
-$msbuildBinaries=$env:MSBuildBootstrapDirectory
+$msbuildBinaries=$env:MSBuildBootstrapBinDirectory
 $msbuildApp=$env:GraphTestApp
 
 echo "Using msbuild binaries from: $msbuildBinaries"
