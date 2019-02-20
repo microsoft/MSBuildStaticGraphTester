@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <RootNamespace>_5</RootNamespace>
-    <TargetFrameworks>netstandard1.0</TargetFrameworks>
+    <TargetFrameworks>netstandard1.0;netstandard1.1</TargetFrameworks>
   </PropertyGroup>
 
 </Project>
