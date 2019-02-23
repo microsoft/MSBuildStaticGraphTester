@@ -57,14 +57,14 @@ function SetupTestProject([string]$projectRoot)
 
 function TestProject([string] $projectRoot, [string] $projectExtension)
 {
-    PrintHeader "BuildManager: $projectRoot"
-    SetupTestProject $projectRoot
-    BuildWithBuildManager $projectRoot $projectExtension
+    # PrintHeader "BuildManager: $projectRoot"
+    # SetupTestProject $projectRoot
+    # BuildWithBuildManager $projectRoot $projectExtension
 
-    if ($LASTEXITCODE -ne 0)
-    {
-        exit
-    }
+    # if ($LASTEXITCODE -ne 0)
+    # {
+    #     exit
+    # }
 
     PrintHeader "Cache roundtrip: $projectRoot"
     SetupTestProject $projectRoot
