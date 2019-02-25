@@ -132,6 +132,7 @@ if ($RedirectEnvironmentToBuildOutputs)
     $env:MSBuildNugetVersion = GetNugetVersionFromFirstFileName $env:MSBuildNugetPackages
 
     $env:SdkRepoBinDirectory = Combine $SdkRepo "artifacts\bin\Release\Sdks"
+    $env:SdkRepo = $SdkRepo
 
-    $env:AllowedReads = "$env:MSBuildBootstrapRoot;$SdkRepoBinDirectory"
+    $env:AllowedReads = "$env:MSBuildBootstrapRoot;$env:SdkRepoBinDirectory;$env:SdkRepo"
 }
