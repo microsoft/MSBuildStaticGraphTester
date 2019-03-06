@@ -15,19 +15,30 @@ function Combine([string]$root, [string]$subdirectory)
     return [System.IO.Path]::Combine($root, $subdirectory)
 }
 
-function CloneRepoIfNecessary([string]$address, [string] $branch, [string] $repoPath)
+function CloneOrUpdateRepo([string]$address, [string] $branch, [string] $repoPath)
 {
-    if (Test-Path  $repoPath) {
-        return
+    if (Test-Path  $repoPath)
+    {
+        Push-Location $repoPath
+
+        & git checkout $branch
+
+        & git fetch origin
+
+        & git reset --hard "origin/$branch"
+
+        Pop-Location
     }
+    else
+    {
+        & git clone $address $repoPath
 
-    & git clone $address $repoPath
+        Push-Location $repoPath
 
-    Push-Location $repoPath
+        & git checkout $branch
 
-    & git checkout $branch
-
-    Pop-Location
+        Pop-Location
+    }
 }
 
 function BuildMSBuildRepo([string]$MSBuildRepo)
@@ -94,7 +105,7 @@ if ($BuildMSBuild)
 {
     ResetUnwantedBuildScriptSideEffects
 
-    CloneRepoIfNecessary $MSBuildRepoAddress $MSBuildBranch $MSBuildRepo
+    CloneOrUpdateRepo $MSBuildRepoAddress $MSBuildBranch $MSBuildRepo
     BuildMSBuildRepo $MSBuildRepo
 }
 
@@ -104,7 +115,7 @@ if ($BuildSdk)
 {
     ResetUnwantedBuildScriptSideEffects
 
-    CloneRepoIfNecessary $SDKRepoAddress $SDKBranch $SdkRepo
+    CloneOrUpdateRepo $SDKRepoAddress $SDKBranch $SdkRepo
     BuildSdkRepo $SdkRepo
 }
 
