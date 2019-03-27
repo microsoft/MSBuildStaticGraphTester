@@ -2,17 +2,18 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
-using Microsoft.Build.Experimental.Graph;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
+using Microsoft.Build.Experimental.Graph;
 
 namespace msb
 {
@@ -23,7 +24,12 @@ namespace msb
         private const string NoConsoleLoggerArg = "-noConsoleLogger";
         private const string BuildManagerArg = "-buildWithBuildManager";
 
+#if RELEASE
         private static readonly bool DebugBuild = false;
+#else
+        private static readonly bool DebugBuild = true;
+#endif
+
         private static bool _noConsoleLogger;
         private static int _minimumArgumentCount;
         private static int _executionTypeIndex;
@@ -102,13 +108,13 @@ namespace msb
 
         private static int Main(string[] args)
         {
-            _minimumArgumentCount = 5;
+            _minimumArgumentCount = 4;
 
             if (args.Length < _minimumArgumentCount || (args.Length > 0 && args[0].IndexOfAny(new[] {'h', '?'}) >= 0))
             {
                 Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {SingleProjectArg} <project file> <cache root>");
-                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {CacheRoundtripArg} <project root> <cache root> [project file extension without dot]");
-                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {BuildManagerArg} <project root> [project file extension without dot]");
+                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {CacheRoundtripArg} <project root> <cache root> [project file extension without dot] [solution file]");
+                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {BuildManagerArg} <project root> [project file extension without dot] [solution file]");
                 return 0;
             }
 
@@ -133,9 +139,9 @@ namespace msb
             }
         }
 
-        private static int BuildSingleProjectWithCaches(string[] args)
+        private static int BuildSingleProjectWithCaches(IReadOnlyList<string> args)
         {
-            Trace.Assert(_executionTypeIndex + 2 == args.Length - 1);
+            Trace.Assert(_executionTypeIndex + 2 == args.Count - 1);
             Trace.Assert(args[_executionTypeIndex] == SingleProjectArg);
 
             var projectFile = args[_executionTypeIndex + 1];
@@ -160,18 +166,24 @@ namespace msb
 
             var projectRootIndex = _executionTypeIndex + 1;
             var projectExtensionIndex = _executionTypeIndex + 2;
+            var solutionFileIndex = _executionTypeIndex + 3;
 
             var projectRoot = args[projectRootIndex];
-            var projectFileExtension = projectExtensionIndex == args.Count - 1
+            var projectFileExtension = projectExtensionIndex <= args.Count - 1
                 ? args[projectExtensionIndex]
                 : "csproj";
+            var solutionFile = solutionFileIndex == args.Count - 1
+                ? args[solutionFileIndex]
+                : null;
 
             Trace.Assert(Directory.Exists(projectRoot), $"Directory does not exist: {projectRoot}");
             Trace.Assert(projectFileExtension[0] != '.');
 
-            var projectFiles = Directory.GetFiles(projectRoot, $"*.{projectFileExtension}", SearchOption.AllDirectories);
+            var projectFiles = solutionFile == null
+                ? Directory.GetFiles(projectRoot, $"*.{projectFileExtension}", SearchOption.AllDirectories).ToImmutableList()
+                : GetProjectFilesFromSolutionFile(solutionFile).ToImmutableList();
 
-            Trace.Assert(projectFiles.Length > 0, $"no projects found in {projectRoot}");
+            Trace.Assert(projectFiles.Count > 0, $"no projects found in {projectRoot}");
 
             using (var buildManager = new BuildManager())
             {
@@ -214,12 +226,16 @@ namespace msb
             var projectRootIndex = _executionTypeIndex + 1;
             var cacheRootIndex = _executionTypeIndex + 2;
             var projectExtensionIndex = _executionTypeIndex + 3;
+            var solutionFileIndex = _executionTypeIndex + 4;
 
             var cacheRoot = args[cacheRootIndex];
             var projectRoot = args[projectRootIndex];
-            var projectFileExtension = projectExtensionIndex == args.Count - 1
+            var projectFileExtension = projectExtensionIndex <= args.Count - 1
                 ? args[projectExtensionIndex]
                 : "csproj";
+            var solutionFile = solutionFileIndex == args.Count - 1
+                ? args[solutionFileIndex]
+                : null;
 
             Trace.Assert(Directory.Exists(projectRoot), $"Directory does not exist: {projectRoot}");
             Trace.Assert(projectFileExtension[0] != '.');
@@ -243,9 +259,11 @@ namespace msb
 
             Directory.CreateDirectory(cacheRoot);
 
-            var projectFiles = Directory.GetFiles(projectRoot, $"*.{projectFileExtension}", SearchOption.AllDirectories);
+            var projectFiles = solutionFile == null
+                ? Directory.GetFiles(projectRoot, $"*.{projectFileExtension}", SearchOption.AllDirectories).ToImmutableList()
+                : GetProjectFilesFromSolutionFile(solutionFile).ToImmutableList();
 
-            Trace.Assert(projectFiles.Length > 0, $"no projects found in {projectRoot}");
+            Trace.Assert(projectFiles.Count > 0, $"no projects found in {projectRoot}");
 
             return BuildGraphWithCacheFileRoundtrip(projectFiles, cacheRoot)
                 ? 0
@@ -265,9 +283,14 @@ namespace msb
                 graph = new ProjectGraph(projectFiles, null, collection);
             }
 
+            if (DebugBuild)
+            {
+                Console.WriteLine(ToDot(graph));
+            }
+
             var cacheFiles = new Dictionary<ProjectGraphNode, string>(graph.ProjectNodes.Count);
 
-            var nodeBuildData = graph.GetBuildData(new[] {"Build"});
+            var targetLists = graph.GetTargetLists(null);
 
             var topoSortedNodes = graph.ProjectNodesTopologicallySorted;
 
@@ -279,9 +302,9 @@ namespace msb
 
                 cacheFiles[node] = outputCacheFile;
 
-                var buildData = nodeBuildData[node];
+                var targets = targetLists[node];
 
-                var result = BuildProject(node.ProjectInstance.FullPath, buildData.GlobalProperties, buildData.Targets, inputCachesFiles, outputCacheFile);
+                var result = BuildProject(node.ProjectInstance.FullPath, node.ProjectInstance.GlobalProperties, targets, inputCachesFiles, outputCacheFile);
 
                 if (result.OverallResult == BuildResultCode.Failure)
                 {
@@ -294,7 +317,7 @@ namespace msb
 
         private static BuildResult BuildProject(
             string projectInstanceFullPath,
-            IReadOnlyDictionary<string, string> globalProperties,
+            IDictionary<string, string> globalProperties,
             IReadOnlyCollection<string> entryTargets,
             string[] inputCachesFiles,
             string outputCacheFile)
@@ -388,6 +411,47 @@ namespace msb
                     Console.WriteLine($"\t{metadata.Name}={metadata.EvaluatedValue}");
                 }
             }
+        }
+
+        internal static string ToDot(ProjectGraph graph)
+        {
+            var nodeCount = 0;
+            return ToDot(graph, node => nodeCount++.ToString());
+        }
+
+        internal static string ToDot(ProjectGraph graph, Func<ProjectGraphNode, string> nodeIdProvider)
+        {
+            var nodeIds = new ConcurrentDictionary<ProjectGraphNode, string>();
+
+            var sb = new StringBuilder();
+
+            sb.Append("digraph g\n{\n\tnode [shape=box]\n");
+
+            foreach (var node in graph.ProjectNodes)
+            {
+                var nodeId = nodeIds.GetOrAdd(node, (n, idProvider) => idProvider(n), nodeIdProvider);
+
+                var nodeName = Path.GetFileNameWithoutExtension(node.ProjectInstance.FullPath);
+                var globalPropertiesString = string.Join("<br/>", node.ProjectInstance.GlobalProperties.OrderBy(kvp => kvp.Key).Select(kvp => $"{kvp.Key}={kvp.Value}"));
+
+                sb.AppendLine($"\t{nodeId} [label=<{nodeName}<br/>{globalPropertiesString}>]");
+
+                foreach (var reference in node.ProjectReferences)
+                {
+                    var referenceId = nodeIds.GetOrAdd(reference, (n, idProvider) => idProvider(n), nodeIdProvider);
+
+                    sb.AppendLine($"\t{nodeId} -> {referenceId}");
+                }
+            }
+
+            sb.Append("}");
+
+            return sb.ToString();
+        }
+
+        private static IEnumerable<string> GetProjectFilesFromSolutionFile(string solutionFile)
+        {
+            return SolutionParser.GetProjectFiles(solutionFile);
         }
     }
 

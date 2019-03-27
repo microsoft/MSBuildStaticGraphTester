@@ -2,43 +2,19 @@ param (
     [switch]$BuildSdk,
     [switch]$BuildMSBuild,
     [switch]$RedirectEnvironmentToBuildOutputs,
-    [string]$Repos = [System.IO.Path]::Combine($PSScriptRoot, "rps"),
-    [string]$MSBuildBranch = "graphCrossTargetting",
-    [string]$MSBuildRepoAddress = "https://github.com/cdmihai/msbuild.git",
+    [string]$Repos,
+    [string]$MSBuildBranch = "master",
+    [string]$MSBuildRepoAddress = "https://github.com/Microsoft/msbuild.git",
     [string]$SDKBranch = "master",
     [string]$SDKRepoAddress = "https://github.com/dotnet/sdk.git",
     [string]$Configuration = "Release"
 )
 
-function Combine([string]$root, [string]$subdirectory)
+. "$PSScriptRoot\Common.ps1"
+
+if (-not $Repos)
 {
-    return [System.IO.Path]::Combine($root, $subdirectory)
-}
-
-function CloneOrUpdateRepo([string]$address, [string] $branch, [string] $repoPath)
-{
-    if (Test-Path  $repoPath)
-    {
-        Push-Location $repoPath
-
-        & git checkout $branch
-
-        & git fetch origin
-
-        & git reset --hard "origin/$branch"
-
-        Pop-Location
-    }
-    else
-    {
-        & git clone $address $repoPath
-
-        Push-Location $repoPath
-
-        & git checkout $branch
-
-        Pop-Location
-    }
+    $Repos = Combine $sourceDirectory "rps"
 }
 
 function BuildMSBuildRepo([string]$MSBuildRepo)
@@ -67,8 +43,13 @@ function GetNugetVersionFromFirstFileName([string] $nugetPackageRoot)
 
 function GetNugetVersion([string] $nugetPackageFile)
 {
-    $versionStart = $nugetPackageFile.IndexOf("16.0.0")
+    $versionStart = $nugetPackageFile.IndexOf("16.")
     $versionEnd = $nugetPackageFile.IndexOf(".nupkg")
+
+    if ($versionStart -lt 0)
+    {
+        throw "Cannot find start of '16.' when extracting msbuild version from '$nugetPackageFile'"
+    }
 
     $version = $nugetPackageFile.SubString($versionStart, $versionEnd - $versionStart)
 
@@ -100,12 +81,26 @@ function ResetUnwantedBuildScriptSideEffects()
 }
 
 $MSBuildRepo = Combine $Repos "MSBuild"
+$MSBuildBootstrapRoot = Combine $msbuildRepo "artifacts\bin\bootstrap\net472"
 
 if ($BuildMSBuild)
 {
     ResetUnwantedBuildScriptSideEffects
 
     CloneOrUpdateRepo $MSBuildRepoAddress $MSBuildBranch $MSBuildRepo
+
+    # incrementality of copying to bootstrap does not work
+    if (Test-Path $MSBuildBootstrapRoot)
+    {
+        # can't delete bootstrap if its dlls were used to build
+        taskkill /F /IM msbuild.exe
+        taskkill /F /IM vbcscompiler.exe
+
+        Write-Host "Deleting $MSBuildBootstrapRoot"
+
+        Remove-item -force -recurse $MSBuildBootstrapRoot
+    }
+
     BuildMSBuildRepo $MSBuildRepo
 }
 
@@ -125,10 +120,10 @@ if ($RedirectEnvironmentToBuildOutputs)
 
     DogfoodSdk $SdkRepo
 
-    $env:MSBuildBootstrapRoot = Combine $msbuildRepo "artifacts\bin\bootstrap\net472"
+    $env:MSBuildBootstrapRoot = Combine $MSBuildRepo "artifacts\bin\bootstrap\net472"
     $env:MSBuildBootstrapBinDirectory = Combine $env:MSBuildBootstrapRoot "MSBuild\Current\Bin"
     $env:MSBuildBootstrapExe = Combine $env:MSBuildBootstrapBinDirectory "MSBuild.exe"
-    $env:MSBuildNugetPackages = Combine $msbuildRepo "artifacts\packages\$Configuration\Shipping"
+    $env:MSBuildNugetPackages = Combine $MSBuildRepo "artifacts\packages\$Configuration\Shipping"
     $env:MSBuildNugetVersion = GetNugetVersionFromFirstFileName $env:MSBuildNugetPackages
 
     $env:SdkRepoBinDirectory = Combine $SdkRepo "artifacts\bin\Release\Sdks"

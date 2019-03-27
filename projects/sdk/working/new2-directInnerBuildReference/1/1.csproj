@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\2\2.csproj" Condition="'$(TargetFramework)' == 'net472'" Properties="TargetFramework=net462"/>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net472;netcoreapp2.2</TargetFrameworks>
+  </PropertyGroup>
+
+</Project>
