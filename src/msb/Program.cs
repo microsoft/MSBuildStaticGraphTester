@@ -179,11 +179,7 @@ namespace msb
             Trace.Assert(Directory.Exists(projectRoot), $"Directory does not exist: {projectRoot}");
             Trace.Assert(projectFileExtension[0] != '.');
 
-            var projectFiles = solutionFile == null
-                ? Directory.GetFiles(projectRoot, $"*.{projectFileExtension}", SearchOption.AllDirectories).ToImmutableList()
-                : GetProjectFilesFromSolutionFile(solutionFile).ToImmutableList();
-
-            Trace.Assert(projectFiles.Count > 0, $"no projects found in {projectRoot}");
+            var projectFiles = GetProjects(projectRoot, solutionFile, projectFileExtension);
 
             using (var buildManager = new BuildManager())
             {
@@ -218,6 +214,31 @@ namespace msb
             }
         }
 
+        private static ImmutableList<string> GetProjects(string projectRoot, string solutionFile, string projectFileExtension)
+        {
+            Trace.Assert(!projectFileExtension.EndsWith(".sln"));
+            Trace.Assert(!solutionFile?.EndsWith("proj") ?? true);
+
+            ImmutableList<string> projectFiles;
+            if (solutionFile == null)
+            {
+                var projectWildcard = $"*.{projectFileExtension}";
+
+                Console.WriteLine($"Solution file not found. Getting projects by scanning for {projectWildcard} in {projectRoot}");
+
+                projectFiles = Directory.GetFiles(projectRoot, projectWildcard, SearchOption.AllDirectories).ToImmutableList();
+            }
+            else
+            {
+                Console.WriteLine($"Getting projects from solution {solutionFile}");
+                projectFiles = GetProjectFilesFromSolutionFile(solutionFile).ToImmutableList();
+            }
+
+            Trace.Assert(projectFiles.Count > 0, $"no projects found in {projectRoot}");
+
+            return projectFiles;
+        }
+
         private static int BuildWithCacheRoundtrip(IReadOnlyList<string> args)
         {
             Trace.Assert(args[_executionTypeIndex] == CacheRoundtripArg);
@@ -240,30 +261,10 @@ namespace msb
             Trace.Assert(Directory.Exists(projectRoot), $"Directory does not exist: {projectRoot}");
             Trace.Assert(projectFileExtension[0] != '.');
 
-            for (int i = 0; i < 3; i++)
-            {
-                if (Directory.Exists(cacheRoot))
-                {
-                    Directory.Delete(cacheRoot, true);
-                }
-
-                if (Directory.Exists(cacheRoot))
-                {
-                    Thread.Sleep(500);
-                }
-                else
-                {
-                    break;
-                }
-            }
-
+            FileUtils.DeleteDirectoryWithRetry(cacheRoot);
             Directory.CreateDirectory(cacheRoot);
 
-            var projectFiles = solutionFile == null
-                ? Directory.GetFiles(projectRoot, $"*.{projectFileExtension}", SearchOption.AllDirectories).ToImmutableList()
-                : GetProjectFilesFromSolutionFile(solutionFile).ToImmutableList();
-
-            Trace.Assert(projectFiles.Count > 0, $"no projects found in {projectRoot}");
+            var projectFiles = GetProjects(projectRoot, solutionFile, projectFileExtension);
 
             return BuildGraphWithCacheFileRoundtrip(projectFiles, cacheRoot)
                 ? 0

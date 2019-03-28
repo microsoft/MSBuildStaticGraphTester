@@ -88,6 +88,7 @@ function MaterializeRepoIfNecessary([PSCustomObject]$repoInfo)
 
 function SetupTestProject([string]$projectRoot, [PSCustomObject]$repoInfo)
 {
+    Write-Information ""
     Write-Information "   Cleaning bin and obj under $projectRoot"
 
     Remove-Item -Force -Recurse "$projectRoot\**\bin"
@@ -115,6 +116,7 @@ function TestProject([string] $projectRoot, [string] $projectExtension)
 {
     $repoInfo = GetRepoInfo $projectRoot
 
+    Write-Information "RepoInfo object:"
     Write-Information $repoInfo
 
     MaterializeRepoIfNecessary $repoInfo
@@ -149,6 +151,12 @@ function TestProject([string] $projectRoot, [string] $projectExtension)
 
 if ($singleProjectDirectory) {
     Write-Information "Single Project Mode"
+
+    if (!$projectExtension)
+    {
+        $projectExtension = "csproj"
+    }
+
     TestProject $singleProjectDirectory $projectExtension
     exit
 }
@@ -160,7 +168,12 @@ $workingProjectRoots = @{
     "$projectsDirectory\sdk\working" = "csproj"
 }
 
-$brokenProjects = @("oldWPF1", "oldWPF-new-2", "new2-directInnerBuildReference")
+$brokenProjects = @(
+    "oldWPF1",
+    "oldWPF-new-2", # generates projects and msbuilds into it
+    "new2-directInnerBuildReference", # needs investigation
+    "orchard-core" # requires transitive project references
+)
 
 foreach ($directoryWithProjects in $workingProjectRoots.Keys)
 {
