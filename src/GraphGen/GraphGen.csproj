@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net472</TargetFramework>
+    <MSBuildWarningsAsMessages>MSB3073</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Graphviz" Version="2.38.0.2" IncludeAssets="none" />
+    <PackageReference Include="GraphViz.NET" Version="1.0.0" PrivateAssets="all" />
+
+    <PackageReference Include="Microsoft.Build.Locator" Version="1.1.2" />
+    <PackageReference Include="Microsoft.Build" Version="16.0.446" ExcludeAssets="runtime" />
+    <PackageReference Include="Microsoft.Build.Framework" Version="16.0.446" ExcludeAssets="runtime" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <Target Name="CopyGraphViz" AfterTargets="Build">
+    <Exec ContinueOnError="True" Command="robocopy  $(PkgGraphviz) $(OutputPath)\Graphviz">
+      <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
+    </Exec>
+    <Error Condition="$(ErrorCode) &gt; 8" Message="Robocopy failed" />
+  </Target>
+
+</Project>

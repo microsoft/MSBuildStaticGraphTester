@@ -1,9 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26124.0
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.156
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "msb", "msb\msb.csproj", "{233250FA-3839-4917-8D5B-04EAE343031D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "msb", "msb\msb.csproj", "{233250FA-3839-4917-8D5B-04EAE343031D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GraphGen", "GraphGen\GraphGen.csproj", "{FB05702A-0B72-4098-BF89-8CF440FE8E21}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,9 +15,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 		Release|x64 = Release|x64
 		Release|x86 = Release|x86
-	EndGlobalSection
-	GlobalSection(SolutionProperties) = preSolution
-		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{233250FA-3839-4917-8D5B-04EAE343031D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
@@ -30,5 +29,23 @@ Global
 		{233250FA-3839-4917-8D5B-04EAE343031D}.Release|x64.Build.0 = Release|Any CPU
 		{233250FA-3839-4917-8D5B-04EAE343031D}.Release|x86.ActiveCfg = Release|Any CPU
 		{233250FA-3839-4917-8D5B-04EAE343031D}.Release|x86.Build.0 = Release|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Debug|x64.Build.0 = Debug|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Debug|x86.Build.0 = Debug|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Release|x64.ActiveCfg = Release|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Release|x64.Build.0 = Release|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Release|x86.ActiveCfg = Release|Any CPU
+		{FB05702A-0B72-4098-BF89-8CF440FE8E21}.Release|x86.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8BED6072-38DC-4AA7-BBB5-89BB7285C0E2}
 	EndGlobalSection
 EndGlobal
