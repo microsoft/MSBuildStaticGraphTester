@@ -16,6 +16,19 @@ namespace GraphGen
 {
     public class GraphVis
     {
+        public static string Create(ProjectGraph graphNodes)
+        {
+            // I don't really remember why I did the hash thing. I think I was concerned with duplicate nodes?
+            var projects = new ConcurrentDictionary<string, ProjectGraphNode>();
+
+            foreach (var item in graphNodes.ProjectNodes)
+            {
+                var propsHash = GraphVis.HashGlobalProps(item.ProjectInstance.GlobalProperties);
+                projects.TryAdd(item.ProjectInstance.FullPath + propsHash, item);
+            }
+
+            return Create(projects);
+        }
         public static string Create(ConcurrentDictionary<string, ProjectGraphNode> projects)
         {
             HashSet<ProjectGraphNode> seen = new HashSet<ProjectGraphNode>();
@@ -29,9 +42,9 @@ namespace GraphGen
                 .Where(n => !n.Value.ProjectInstance.FullPath.Contains("dirs.proj"))
                 .GroupBy(kvp => kvp.Value.ProjectInstance.FullPath, (p, plist) => new { ProjectGroupName = p, Projects = projects.Where(p2=>p2.Value.ProjectInstance.FullPath == p).ToList()}))
             {
-                GraphVisCluster cluster = new GraphVisCluster(group.ProjectGroupName);
+                GraphVisCluster cluster = new GraphVisCluster(@group.ProjectGroupName);
 
-                foreach (var node in group.Projects)
+                foreach (var node in @group.Projects)
                 {
                     var graphNode = new GraphVisNode(node.Value);
                     cluster.AddNode(graphNode);
@@ -89,6 +102,33 @@ namespace GraphGen
 
             Console.WriteLine();
             Console.WriteLine($"{output.Length} bytes written to {outFile}.");
+        }
+
+        private const char ItemSeparatorCharacter = '\u2028';
+
+        private static string HashGlobalProps(IDictionary<string, string> globalProperties)
+        {
+            using (var sha1 = SHA1.Create())
+            {
+                var stringBuilder = new StringBuilder();
+                foreach (var item in globalProperties)
+                {
+                    stringBuilder.Append(item.Key);
+                    stringBuilder.Append(ItemSeparatorCharacter);
+                    stringBuilder.Append(item.Value);
+                }
+
+                var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(stringBuilder.ToString()));
+
+                stringBuilder.Clear();
+
+                foreach (var b in hash)
+                {
+                    stringBuilder.Append(b.ToString("x2"));
+                }
+
+                return stringBuilder.ToString();
+            }
         }
     }
 }

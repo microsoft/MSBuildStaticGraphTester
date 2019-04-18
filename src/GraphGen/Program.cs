@@ -1,16 +1,11 @@
-﻿using GraphVizWrapper;
-using GraphVizWrapper.Commands;
-using GraphVizWrapper.Queries;
-using Microsoft.Build.Evaluation;
+﻿using Microsoft.Build.Evaluation;
 using Microsoft.Build.Experimental.Graph;
 using Microsoft.Build.Locator;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Security.Cryptography;
-using System.Text;
+using System.Linq;
 
 namespace GraphGen
 {
@@ -18,60 +13,52 @@ namespace GraphGen
     {
         static void Main(string[] args)
         {
-            // GraphGen.exe <msbuild-path> <proj-file> <out.png>
-            var msbuildpath = args[0];
-            var projectFile = args[1];
-            var outFile = args.Length > 2 ? args[2] : "out.png";
+            
+            var outFile = args.Length > 1 ? args[2] : "out.png";
 
-            MSBuildLocator.RegisterMSBuildPath(msbuildpath);
+            // GraphGen.exe <proj-file> ?<out.png> ?<msbuild-path>
+            if (args.Length == 0)
+            {
+                Console.WriteLine("GraphGen.exe <proj-file> ?<out.png> ?<msbuild-path>");
+                Environment.Exit(1);
+            }
 
-            var graphText = new Program().LoadGraph(projectFile);
+            var projectFile = new FileInfo(args[0]);
+
+            if (args.Length < 3)
+            {
+                var instances = MSBuildLocator.QueryVisualStudioInstances(VisualStudioInstanceQueryOptions.Default);
+                var instance = instances.FirstOrDefault(i => i.Version.Major == 16);
+                MSBuildLocator.RegisterInstance(instance);
+            }
+            else
+            {
+                MSBuildLocator.RegisterMSBuildPath(args[2]);
+            }
+            
+            var files = new List<string>();
+            if (projectFile.Extension == ".sln")
+            {
+                files.AddRange(SolutionParser.GetProjectFiles(projectFile.FullName));
+            }
+            else
+            {
+                files.Add(projectFile.FullName);
+            }
+
+            var graphText = new Program().LoadGraph(files);
+
             GraphVis.SaveAsPng(graphText, outFile);
         }
 
-        private string LoadGraph(string file)
+        private string LoadGraph(List<string> files)
         {
             Console.WriteLine("Loading graph...");
             var sw = Stopwatch.StartNew();
-            var graph = new ProjectGraph(file, ProjectCollection.GlobalProjectCollection);
-            Console.WriteLine($@"{file} loaded {graph.ProjectNodes.Count} node(s) in {sw.ElapsedMilliseconds}ms.");
+            var graph = new ProjectGraph(files, ProjectCollection.GlobalProjectCollection);
+            Console.WriteLine($@"{files.First()} loaded {graph.ProjectNodes.Count} node(s) in {sw.ElapsedMilliseconds}ms.");
 
-            var projects = new ConcurrentDictionary<string, ProjectGraphNode>();
-
-            foreach (var item in graph.ProjectNodes)
-            {
-                var propsHash = HashGlobalProps(item.ProjectInstance.GlobalProperties);
-                projects.TryAdd(item.ProjectInstance.FullPath + propsHash, item);
-            }
-
-            return GraphVis.Create(projects);
-        }
-
-        private const char ItemSeparatorCharacter = '\u2028';
-
-        internal static string HashGlobalProps(IDictionary<string, string> globalProperties)
-        {
-            using (var sha1 = SHA1.Create())
-            {
-                var stringBuilder = new StringBuilder();
-                foreach (var item in globalProperties)
-                {
-                    stringBuilder.Append(item.Key);
-                    stringBuilder.Append(ItemSeparatorCharacter);
-                    stringBuilder.Append(item.Value);
-                }
-
-                var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(stringBuilder.ToString()));
-
-                stringBuilder.Clear();
-
-                foreach (var b in hash)
-                {
-                    stringBuilder.Append(b.ToString("x2"));
-                }
-
-                return stringBuilder.ToString();
-            }
+            return GraphVis.Create(graph);
         }
     }
 }
