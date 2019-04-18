@@ -39,10 +39,15 @@
             this._treeVew = new System.Windows.Forms.TreeView();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.webBrowser1 = new System.Windows.Forms.WebBrowser();
+            this.tbSaveFile = new System.Windows.Forms.TextBox();
+            this.numRankSep = new System.Windows.Forms.NumericUpDown();
+            this.numNodeSep = new System.Windows.Forms.NumericUpDown();
             this._statusBar.SuspendLayout();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.numRankSep)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numNodeSep)).BeginInit();
             this.SuspendLayout();
             // 
             // _loadButton
@@ -149,11 +154,47 @@
             this.webBrowser1.Size = new System.Drawing.Size(1089, 609);
             this.webBrowser1.TabIndex = 6;
             // 
+            // tbSaveFile
+            // 
+            this.tbSaveFile.Location = new System.Drawing.Point(314, 16);
+            this.tbSaveFile.Name = "tbSaveFile";
+            this.tbSaveFile.Size = new System.Drawing.Size(617, 20);
+            this.tbSaveFile.TabIndex = 5;
+            // 
+            // numRankSep
+            // 
+            this.numRankSep.DecimalPlaces = 2;
+            this.numRankSep.Location = new System.Drawing.Point(212, 16);
+            this.numRankSep.Name = "numRankSep";
+            this.numRankSep.Size = new System.Drawing.Size(45, 20);
+            this.numRankSep.TabIndex = 6;
+            this.numRankSep.Value = new decimal(new int[] {
+            30,
+            0,
+            0,
+            65536});
+            // 
+            // numNodeSep
+            // 
+            this.numNodeSep.DecimalPlaces = 2;
+            this.numNodeSep.Location = new System.Drawing.Point(263, 16);
+            this.numNodeSep.Name = "numNodeSep";
+            this.numNodeSep.Size = new System.Drawing.Size(45, 20);
+            this.numNodeSep.TabIndex = 6;
+            this.numNodeSep.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            65536});
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1103, 712);
+            this.Controls.Add(this.numNodeSep);
+            this.Controls.Add(this.numRankSep);
+            this.Controls.Add(this.tbSaveFile);
             this.Controls.Add(this.tabControl1);
             this.Controls.Add(this._statusBar);
             this.Controls.Add(this.button1);
@@ -165,6 +206,8 @@
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.numRankSep)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.numNodeSep)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -182,6 +225,9 @@
         private System.Windows.Forms.TreeView _treeVew;
         private System.Windows.Forms.TabPage tabPage2;
         private System.Windows.Forms.WebBrowser webBrowser1;
+        private System.Windows.Forms.TextBox tbSaveFile;
+        private System.Windows.Forms.NumericUpDown numRankSep;
+        private System.Windows.Forms.NumericUpDown numNodeSep;
     }
 }
 

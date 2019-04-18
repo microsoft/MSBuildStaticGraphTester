@@ -13,29 +13,45 @@ namespace GraphGen
     {
         static void Main(string[] args)
         {
-            
-            var outFile = args.Length > 1 ? args[2] : "out.png";
-
-            // GraphGen.exe <proj-file> ?<out.png> ?<msbuild-path>
-            if (args.Length == 0)
+            try
             {
-                Console.WriteLine("GraphGen.exe <proj-file> ?<out.png> ?<msbuild-path>");
+                var outFile = args.Length > 1 ? args[1] : "out.png";
+
+                // GraphGen.exe <proj-file> ?<out.png> ?<msbuild-path>
+                if (args.Length == 0)
+                {
+                    Console.WriteLine("GraphGen.exe <proj-file> ?<out.png> ?<msbuild-path>");
+                    Environment.Exit(1);
+                }
+
+                var projectFile = args[0];
+
+                if (args.Length < 3)
+                {
+                    var instances = MSBuildLocator.QueryVisualStudioInstances(VisualStudioInstanceQueryOptions.Default);
+                    var instance = instances.FirstOrDefault(i => i.Version.Major == 16);
+                    MSBuildLocator.RegisterInstance(instance);
+                }
+                else
+                {
+                    MSBuildLocator.RegisterMSBuildPath(args[2]);
+                }
+
+                var graphText = new Program().LoadGraph(new FileInfo(projectFile));
+
+                GraphVis.Save(graphText, outFile);
+            }
+            catch (Exception e)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine(e);
+                Console.ResetColor();
                 Environment.Exit(1);
             }
+        }
 
-            var projectFile = new FileInfo(args[0]);
-
-            if (args.Length < 3)
-            {
-                var instances = MSBuildLocator.QueryVisualStudioInstances(VisualStudioInstanceQueryOptions.Default);
-                var instance = instances.FirstOrDefault(i => i.Version.Major == 16);
-                MSBuildLocator.RegisterInstance(instance);
-            }
-            else
-            {
-                MSBuildLocator.RegisterMSBuildPath(args[2]);
-            }
-            
+        private string LoadGraph(FileInfo projectFile)
+        {
             var files = new List<string>();
             if (projectFile.Extension == ".sln")
             {
@@ -46,17 +62,10 @@ namespace GraphGen
                 files.Add(projectFile.FullName);
             }
 
-            var graphText = new Program().LoadGraph(files);
-
-            GraphVis.SaveAsPng(graphText, outFile);
-        }
-
-        private string LoadGraph(List<string> files)
-        {
             Console.WriteLine("Loading graph...");
             var sw = Stopwatch.StartNew();
             var graph = new ProjectGraph(files, ProjectCollection.GlobalProjectCollection);
-            Console.WriteLine($@"{files.First()} loaded {graph.ProjectNodes.Count} node(s) in {sw.ElapsedMilliseconds}ms.");
+            Console.WriteLine($@"{projectFile} loaded {graph.ProjectNodes.Count} node(s) in {sw.ElapsedMilliseconds}ms.");
 
             return GraphVis.Create(graph);
         }

@@ -16,7 +16,17 @@ namespace GraphGen
 {
     public class GraphVis
     {
+        public static string Create(ConcurrentDictionary<string, ProjectGraphNode> projects)
+        {
+            return Create(projects, new GraphVisOptions());
+        }
+
         public static string Create(ProjectGraph graphNodes)
+        {
+            return Create(graphNodes, new GraphVisOptions());
+        }
+
+        public static string Create(ProjectGraph graphNodes, GraphVisOptions options)
         {
             // I don't really remember why I did the hash thing. I think I was concerned with duplicate nodes?
             var projects = new ConcurrentDictionary<string, ProjectGraphNode>();
@@ -27,9 +37,10 @@ namespace GraphGen
                 projects.TryAdd(item.ProjectInstance.FullPath + propsHash, item);
             }
 
-            return Create(projects);
+            return Create(projects, options);
         }
-        public static string Create(ConcurrentDictionary<string, ProjectGraphNode> projects)
+
+        public static string Create(ConcurrentDictionary<string, ProjectGraphNode> projects, GraphVisOptions options)
         {
             HashSet<ProjectGraphNode> seen = new HashSet<ProjectGraphNode>();
 
@@ -71,8 +82,8 @@ namespace GraphGen
 
             sb.AppendLine("digraph prof {");
             sb.AppendLine("  ratio = fill;");
-            sb.AppendLine("  nodesep = .1;");
-            sb.AppendLine("  ranksep = 3.0;");
+            sb.AppendLine($"  nodesep = {options.NodeSep};");
+            sb.AppendLine($"  ranksep = {options.RankSep};");
             sb.AppendLine("  node [style=filled];");
             sb.Append(clusters);
             sb.Append(edges);
@@ -81,8 +92,10 @@ namespace GraphGen
             return sb.ToString();
         }
 
-        public static void SaveAsPng(string graphText, string outFile)
+        public static void Save(string graphText, string outFile)
         {
+            var outFileInfo = new FileInfo(outFile);
+
             // These three instances can be injected via the IGetStartProcessQuery, 
             //                                               IGetProcessStartInfoQuery and 
             //                                               IRegisterLayoutPluginCommand interfaces
@@ -97,7 +110,24 @@ namespace GraphGen
                 getProcessStartInfoQuery,
                 registerLayoutPluginCommand);
 
-            byte[] output = wrapper.GenerateGraph(graphText, Enums.GraphReturnType.Png);
+            Enums.GraphReturnType saveType;
+            switch (outFileInfo.Extension)
+            {
+                case ".pdf":
+                    saveType = Enums.GraphReturnType.Pdf;
+                    break;
+                case ".jpg":
+                    saveType = Enums.GraphReturnType.Jpg;
+                    break;
+                case ".png":
+                    saveType = Enums.GraphReturnType.Png;
+                    break;
+                default:
+                    throw new Exception($"Unknown extension: {outFileInfo.Extension}");
+
+            }
+            
+            byte[] output = wrapper.GenerateGraph(graphText, saveType);
             File.WriteAllBytes(outFile, output);
 
             Console.WriteLine();
@@ -130,5 +160,11 @@ namespace GraphGen
                 return stringBuilder.ToString();
             }
         }
+    }
+
+    public class GraphVisOptions
+    {
+        public double RankSep { get; set; } = 3.0;
+        public double NodeSep { get; set; } = .1;
     }
 }

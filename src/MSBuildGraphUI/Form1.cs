@@ -19,22 +19,24 @@ namespace MSBuildGraphUI
         public Form1()
         {
             InitializeComponent();
+            tbSaveFile.Text = Path.GetTempPath() + "MSB_GRAPH.png";
+            tabControl1.SelectTab("tabPage2");
         }
         private void button1_Click(object sender, EventArgs e)
         {
-            LoadGraph(new FileInfo(@"D:\src\msbuild.fork4\src\MSBuild\MSBuild.csproj"));
+            LoadGraph(new FileInfo(@"D:\src\msbuild.fork4\src\MSBuild\MSBuild.csproj"), tbSaveFile.Text);
         }
 
         private void _loadButton_Click(object sender, EventArgs e)
         {
             if (_openFileDialog.ShowDialog(this) == DialogResult.OK)
             {
-                LoadGraph(new FileInfo(_openFileDialog.FileName));
+                LoadGraph(new FileInfo(_openFileDialog.FileName), tbSaveFile.Text);
             }
 
         }
 
-        private async void LoadGraph(FileInfo project)
+        private async void LoadGraph(FileInfo project, string graphOutputFile)
         {
             var files = new List<ProjectGraphEntryPoint>();
 
@@ -57,10 +59,10 @@ namespace MSBuildGraphUI
             _statusBarLabel.Text = $@"{project.Name} loaded {graph.ProjectNodes.Count} node(s) in {stopwatch.ElapsedMilliseconds}ms.";
 
             // Create the graph png file
-            var graphText = await Task.Factory.StartNew(() => GraphVis.Create(graph));
-            var file = Path.GetTempPath() + "MSB_GRAPH.png";
-            await Task.Factory.StartNew(() => GraphVis.SaveAsPng(graphText, file));
-            webBrowser1.Url = new Uri(file);
+            var options = new GraphVisOptions {NodeSep = (double)numNodeSep.Value, RankSep = (double)numRankSep.Value};
+            var graphText = await Task.Factory.StartNew(() => GraphVis.Create(graph, options));
+            await Task.Factory.StartNew(() => GraphVis.Save(graphText, graphOutputFile));
+            webBrowser1.Url = new Uri(graphOutputFile);
 
 
             // Populate the tree view
