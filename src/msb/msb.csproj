@@ -5,7 +5,7 @@
     <TargetFramework>net472</TargetFramework>
 
     <RestorePackagesPath>$(MSBuildProjectExtensionsPath)/nugetCache</RestorePackagesPath>
-
+    <MSBuildNugetVersion Condition="'$(MSBuildNugetVersion)' == ''">16.1.0-preview.59+gd8f1537cf1</MSBuildNugetVersion>
     <RestoreSources>
         $(RestoreSources);
         $(MSBuildNugetPackages);
