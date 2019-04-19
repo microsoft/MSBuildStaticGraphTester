@@ -6,17 +6,19 @@
     <MSBuildWarningsAsMessages>MSB3073</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
+  <Import Project="$(SrcRoot)MSBuildReferences.props" />
+
   <ItemGroup>
     <PackageReference Include="Graphviz" Version="2.38.0.2" IncludeAssets="none" />
     <PackageReference Include="GraphViz.NET" Version="1.0.0" PrivateAssets="all" />
-
-    <PackageReference Include="Microsoft.Build.Locator" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Build" Version="16.0.446" ExcludeAssets="runtime" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="16.0.446" ExcludeAssets="runtime" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CommonUtilities\CommonUtilities.csproj" />
   </ItemGroup>
 
   <Target Name="CopyGraphViz" AfterTargets="Build">

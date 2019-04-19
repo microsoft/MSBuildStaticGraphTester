@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using CommonUtilities;
 
 namespace GraphGen
 {
@@ -28,9 +29,7 @@ namespace GraphGen
 
                 if (args.Length < 3)
                 {
-                    var instances = MSBuildLocator.QueryVisualStudioInstances(VisualStudioInstanceQueryOptions.Default);
-                    var instance = instances.FirstOrDefault(i => i.Version.Major == 16);
-                    MSBuildLocator.RegisterInstance(instance);
+                    MSBuildLocatorUtils.RegisterMSBuild();
                 }
                 else
                 {

@@ -31,10 +31,10 @@ namespace GraphGen
             // I don't really remember why I did the hash thing. I think I was concerned with duplicate nodes?
             var projects = new ConcurrentDictionary<string, ProjectGraphNode>();
 
-            foreach (var item in graphNodes.ProjectNodes)
+            foreach (var node in graphNodes.ProjectNodes)
             {
-                var propsHash = GraphVis.HashGlobalProps(item.ProjectInstance.GlobalProperties);
-                projects.TryAdd(item.ProjectInstance.FullPath + propsHash, item);
+                var propsHash = GraphVis.HashGlobalProps(node.ProjectInstance.GlobalProperties);
+                projects.TryAdd(node.ProjectInstance.FullPath + propsHash, node);
             }
 
             return Create(projects, options);

@@ -1,0 +1,23 @@
+<Project>
+    <PropertyGroup>
+        <RepoRoot Condition="'$(RepoRoot)' == ''">$([MSBuild]::GetDirectoryNameOfFileAbove($(MSBuildProjectDirectory), '.gitignore'))\</RepoRoot>
+        <SrcRoot Condition="'$(SrcRoot)' == ''">$([System.IO.Path]::GetFullPath('$(RepoRoot)src\'))</SrcRoot>
+
+        <ArtifactsDir Condition="'$(ArtifactsDir)' == ''">$(SrcRoot)out\</ArtifactsDir>
+
+        <ArtifactsObjDir>$(ArtifactsDir)obj\</ArtifactsObjDir>
+        <ArtifactsConfigurationDir>$(ArtifactsDir)$(Configuration)\</ArtifactsConfigurationDir>
+        <ArtifactsBinDir>$(ArtifactsConfigurationDir)bin\</ArtifactsBinDir>
+    </PropertyGroup>
+    <PropertyGroup>
+        <OutDirName Condition="'$(OutDirName)' == ''">$(MSBuildProjectName)</OutDirName>
+
+        <BaseOutputPath Condition="'$(BaseOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(ArtifactsBinDir)$(OutDirName)\'))</BaseOutputPath>
+        <OutputPath>$(BaseOutputPath)</OutputPath>
+        <OutputPath Condition="'$(PlatformName)' != 'AnyCPU'">$(OutputPath)$(PlatformName)\</OutputPath>
+
+        <BaseIntermediateOutputPath Condition="'$(BaseIntermediateOutputPath)' == ''">$([System.IO.Path]::GetFullPath('$(ArtifactsObjDir)$(MSBuildProjectName)\'))</BaseIntermediateOutputPath>
+        <IntermediateOutputPath Condition="'$(PlatformName)' == 'AnyCPU'">$(BaseIntermediateOutputPath)$(Configuration)\</IntermediateOutputPath>
+        <IntermediateOutputPath Condition="'$(PlatformName)' != 'AnyCPU'">$(BaseIntermediateOutputPath)$(PlatformName)\$(Configuration)\</IntermediateOutputPath>
+    </PropertyGroup>
+</Project>

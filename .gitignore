@@ -4,8 +4,9 @@
 # transient artefacts
 caches/
 generatedProjects/
-rps/
 repo/
+out/
+
 
 # User-specific files
 *.suo

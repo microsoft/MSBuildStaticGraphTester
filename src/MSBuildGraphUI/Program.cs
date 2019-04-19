@@ -1,7 +1,10 @@
 ﻿using Microsoft.Build.Locator;
 using System;
+using System.IO;
 using System.Linq;
+using System.Net;
 using System.Windows.Forms;
+using CommonUtilities;
 
 namespace MSBuildGraphUI
 {
@@ -18,9 +21,7 @@ namespace MSBuildGraphUI
             //var msbuildPath = @"D:\src\DomTest\SGEC\src\rps\MSBuild\artifacts\bin\bootstrap\net472\MSBuild\Current\Bin";
             //MSBuildLocator.RegisterMSBuildPath(msbuildPath);
 
-            var instances = MSBuildLocator.QueryVisualStudioInstances(VisualStudioInstanceQueryOptions.Default);
-            var instance = instances.FirstOrDefault(i => i.Version.Major == 16);
-            MSBuildLocator.RegisterInstance(instance);
+            MSBuildLocatorUtils.RegisterMSBuild();
             
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);

@@ -10,15 +10,17 @@ Set-StrictMode -Version Latest
 if ($BuildRepos)
 {
     & "$PSScriptRoot\BuildRepos.ps1" -configuration $Configuration -BuildMSBuild -BuildSdk -RedirectEnvironmentToBuildOutputs
+    ExitOnFailure
 }
 else
 {
     & "$PSScriptRoot\BuildRepos.ps1" -configuration $Configuration -RedirectEnvironmentToBuildOutputs
+    ExitOnFailure
 }
 
-rm -Recurse -Force "$sourceDirectory\msb\bin"
-rm -Recurse -Force "$sourceDirectory\msb\obj"
+rm -Recurse -Force -Path "$sourceDirectory" -Include "bin"
+rm -Recurse -Force -Path "$sourceDirectory" -Include "obj"
 
-& "$env:MSBuildBootstrapExe" /restore "$sourceDirectory\msb\msb.csproj" /p:"Configuration=$Configuration"
+& "$env:MSBuildBootstrapExe" /restore "$sourceDirectory\src.sln" /p:"Configuration=$Configuration"
 
-$env:MSBuildGraphTestApp = "$sourceDirectory\msb\bin\$Configuration\net472\msb.exe"
+$env:MSBuildGraphTestApp = "$sourceDirectory\out\$Configuration\bin\msb\net472\msb.exe"

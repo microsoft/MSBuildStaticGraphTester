@@ -14,7 +14,7 @@ param (
 
 if (-not $Repos)
 {
-    $Repos = Combine $sourceDirectory "rps"
+    $Repos = Combine $repoPath "repo"
 }
 
 function BuildMSBuildRepo([string]$MSBuildRepo)
@@ -22,16 +22,19 @@ function BuildMSBuildRepo([string]$MSBuildRepo)
     & "$MSBuildRepo\eng\common\build.ps1" -build -restore -ci -pack -configuration $Configuration /p:CreateBootstrap=true /p:ApplyPartialNgenOptimization=false
     # & "$MSBuildRepo\eng\common\build.ps1" -build -restore -configuration $Configuration /p:CreateBootstrap=true
     # & "$MSBuildRepo\eng\common\build.ps1" -ci -pack -configuration $Configuration /p:ApplyPartialNgenOptimization=false
+    ExitOnFailure
 }
 
 function BuildSdkRepo([string]$SdkRepo)
 {
     & "$SdkRepo\eng\common\build.ps1" -build -restore -configuration $Configuration
+    ExitOnFailure
 }
 
 function DogfoodSdk([string]$SdkRepo)
 {
     & "$SdkRepo\eng\dogfood.ps1" -configuration $Configuration
+    ExitOnFailure
 }
 
 function GetNugetVersionFromFirstFileName([string] $nugetPackageRoot)

@@ -1,0 +1,11 @@
+<Project>
+    <PropertyGroup>
+        <MSBuildNugetVersion Condition="'$(MSBuildNugetVersion)' == ''">16.1.0-preview.59+gd8f1537cf1</MSBuildNugetVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.Build.Locator" Version="1.1.2" />
+        <PackageReference Include="Microsoft.Build.Runtime" Version="$(MSBuildNugetVersion)" ExcludeAssets="runtime"/>
+        <PackageReference Include="System.Collections.Immutable" Version="1.5.0"/>
+    </ItemGroup>
+</Project>
