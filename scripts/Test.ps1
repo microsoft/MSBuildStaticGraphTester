@@ -91,8 +91,8 @@ function SetupTestProject([string]$projectRoot, [PSCustomObject]$repoInfo)
     Write-Information ""
     Write-Information "   Cleaning bin and obj under $projectRoot"
 
-    Remove-Item -Force -Recurse "$projectRoot\**\bin"
-    Remove-Item -Force -Recurse "$projectRoot\**\obj"
+    Remove-Item -Force -Recurse -Path "$projectRoot" -Include "bin"
+    Remove-Item -Force -Recurse -Path "$projectRoot" -Include "obj"
 
     $setupScript = Combine $projectRoot "setup.ps1"
 

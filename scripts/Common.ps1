@@ -11,7 +11,9 @@ function Combine
 
 function ToGitHash([string] $branchOrCommit)
 {
-    $refsString = (git show-ref --hash $branchOrCommit) | Out-String
+    # on valid branch name, prints commit sha
+    # else errors and prints nothing
+    $refsString = (git show-ref --hash $branchOrCommit)
 
     if (-not $refsString)
     {
@@ -19,6 +21,7 @@ function ToGitHash([string] $branchOrCommit)
     }
     else
     {
+        # there can be multiple shas returned, pick the first one
         $refs = $refsString -split '\s'
 
         $firstRef = $refs[0]
@@ -26,43 +29,90 @@ function ToGitHash([string] $branchOrCommit)
         $returnVal = $firstRef
     }
 
+    $discardedOutput =  (git cat-file -e $returnVal 2>&1)
+
+    if ($LASTEXITCODE -ne 0)
+    {
+        throw "Not a valid git object: [$branchOrCommit]"
+    }
+
+    if ($returnVal -notmatch ".*\d.*")
+    {
+        Write-Error "[$branchCommit] was converted to the [$returnVal] hash, but the hash does not have numbers. Probably something went wrong."
+        exit
+    }
+
     return $returnVal
 }
 
 function CloneOrUpdateRepo([string]$address, [string] $location, [string] $repoPath, [bool] $updateIfExists = $true)
 {
-    $locationHash = ToGitHash $location
+    $currentDirectory = Get-Location
 
-    if ((Test-Path  $repoPath) -and $updateIfExists)
+    try
     {
-        Push-Location $repoPath
+        if ((Test-Path  $repoPath) -and $updateIfExists)
+        {
+            Push-Location $repoPath
 
-        & git remote -v
+            ExecuteAndExitOnFailure "git remote -v"
 
-        & git fetch origin
+            ExecuteAndExitOnFailure "git fetch origin"
 
-        $locationHash = ToGitHash $location
-        Write-Information "[$location] converted to [$locationHash]"
+            $locationHash = ToGitHash $location
+            Write-Information "[$location] converted to [$locationHash]"
 
-        & git checkout $locationHash
+            ExecuteAndExitOnFailure "git checkout $locationHash"
 
-        Pop-Location
+            Pop-Location
+        }
+        elseif (-not (Test-Path $repoPath))
+        {
+            ExecuteAndExitOnFailure "git clone $address $repoPath"
+
+            Push-Location $repoPath
+
+            $locationHash = ToGitHash $location
+            Write-Information "[$location] converted to [$locationHash]"
+
+            ExecuteAndExitOnFailure "git fetch origin"
+
+            ExecuteAndExitOnFailure "git checkout $locationHash"
+
+            Pop-Location
+        }
     }
-    elseif (-not (Test-Path $repoPath))
+    finally
     {
-        & git clone $address $repoPath
-
-        Push-Location $repoPath
-
-        $locationHash = ToGitHash $location
-        Write-Information "[$location] converted to [$locationHash]"
-
-        & git fetch origin
-
-        & git checkout $locationHash
-
-        Pop-Location
+        Set-Location $currentDirectory
     }
+}
+
+function ExitOnFailure
+{
+    if ($LASTEXITCODE -ne 0)
+    {
+        exit
+    }
+}
+
+function ExecuteAndExitOnFailure([string] $command, [bool] $captureOutput = $false)
+{
+    Write-Information "Running: [$command]"
+    $output = $null
+
+    if ($captureOutput)
+    {
+        $output = Invoke-Expression $command
+    }
+    else
+    {
+        Invoke-Expression $command
+    }
+
+    ExitOnFailure
+
+    return $output
 }
 
 $repoPath = [System.IO.Path]::GetFullPath((Combine $PSScriptRoot ".."))

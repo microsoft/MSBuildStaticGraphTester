@@ -183,7 +183,8 @@ namespace msb
 
             using (var buildManager = new BuildManager())
             {
-                var graph = new ProjectGraph(projectFiles);
+                var graph = CreateProjectGraph(projectFiles);
+
                 var graphRequestData = new GraphBuildRequestData(graph, new[] {"Build"});
 
                 var parameters = new BuildParameters()
@@ -277,12 +278,7 @@ namespace msb
 
             var success = true;
 
-            using (var collection = new ProjectCollection())
-            {
-                //collection.RegisterLogger(new EvaluationLogger());
-
-                graph = new ProjectGraph(projectFiles, null, collection);
-            }
+            graph = CreateProjectGraph(projectFiles);
 
             if (DebugBuild)
             {
@@ -299,13 +295,23 @@ namespace msb
             {
 
                 var outputCacheFile = graph.GraphRoots.Contains(node) ? null : Path.Combine(cacheRoot, node.CacheFileName());
-                var inputCachesFiles = node.ProjectReferences.Select(r => cacheFiles[r]).ToArray();
+
+                var inputCachesFiles = new List<string>(node.ProjectReferences.Count);
+
+                for (var i = 0; i < node.ProjectReferences.Count; i++)
+                {
+                    var reference = node.ProjectReferences.ElementAt(i);
+
+                    Trace.Assert(cacheFiles.ContainsKey(reference), "Each reference must propagate a cache file");
+
+                    inputCachesFiles.Add(cacheFiles[reference]);
+                }
 
                 cacheFiles[node] = outputCacheFile;
 
                 var targets = targetLists[node];
 
-                var result = BuildProject(node.ProjectInstance.FullPath, node.ProjectInstance.GlobalProperties, targets, inputCachesFiles, outputCacheFile);
+                var result = BuildProject(node.ProjectInstance.FullPath, node.ProjectInstance.GlobalProperties, targets, inputCachesFiles.ToArray(), outputCacheFile);
 
                 if (result.OverallResult == BuildResultCode.Failure)
                 {
@@ -314,6 +320,22 @@ namespace msb
             }
 
             return success;
+        }
+
+        private static ProjectGraph CreateProjectGraph(IReadOnlyCollection<string> projectFiles)
+        {
+            using (var collection = new ProjectCollection())
+            {
+//                collection.RegisterLogger(new EvaluationLogger());
+
+
+                var projectGraph = new ProjectGraph(projectFiles, null, collection);
+
+                Console.WriteLine($"Root Count: {projectGraph.GraphRoots.Count}");
+                Console.WriteLine($"Node Count: {projectGraph.ProjectNodes.Count}");
+
+                return projectGraph;
+            }
         }
 
         private static BuildResult BuildProject(

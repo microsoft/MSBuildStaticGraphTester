@@ -1,0 +1,5 @@
+{
+    "RepoAddress": "https://github.com/cdmihai/roslyn.git",
+    "RepoLocation": "staticGraph",
+    "SolutionFile": "Compilers.sln"
+}
