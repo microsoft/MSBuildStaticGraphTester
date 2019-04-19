@@ -39,53 +39,6 @@ function PrintHeader([string]$text)
     Write-Information ("=" * $line.Length)
 }
 
-function GetRepoInfo([string] $repoRoot)
-{
-    $repoInfoFile = Combine $projectRoot "repoInfo"
-
-    if (Test-Path $repoInfoFile)
-    {
-        $repoInfo = [PSCustomObject](Get-Content $repoInfoFile | ConvertFrom-Json)
-
-        $repoDirectory = Combine $repoRoot "repo"
-        $repoInfo | Add-Member -MemberType NoteProperty -Name "RepoDirectory" -Value $repoDirectory
-
-        if ($null -ne $repoInfo.SolutionFile)
-        {
-            $repoInfo.SolutionFile = Combine $repoInfo.RepoDirectory $repoInfo.SolutionFile
-        }
-
-        return $repoInfo
-    }
-    else
-    {
-        return [PSCustomObject]@{
-            RepoAddress = $null
-            RepoLocation = $null
-            SolutionFile = $null
-            RepoDirectory = $null
-        }
-    }
-}
-
-function MaterializeRepo([PSCustomObject] $repoInfo, [string] $repoRoot)
-{
-    $repoAddress = $repoInfo.RepoAddress
-    $repoCommit = $repoInfo.RepoLocation
-    $repoDirectory = $repoInfo.RepoDirectory
-
-    CloneOrUpdateRepo $repoAddress $repoCommit $repoDirectory
-}
-
-function MaterializeRepoIfNecessary([PSCustomObject]$repoInfo)
-{
-    if ($null -ne $repoInfo.RepoAddress)
-    {
-        Write-Information "Materializing $($repoInfo.RepoAddress)"
-        MaterializeRepo $repoInfo $projectRoot
-    }
-}
-
 function SetupTestProject([string]$projectRoot, [PSCustomObject]$repoInfo)
 {
     Write-Information ""
@@ -94,22 +47,7 @@ function SetupTestProject([string]$projectRoot, [PSCustomObject]$repoInfo)
     Remove-Item -Force -Recurse -Path "$projectRoot" -Include "bin"
     Remove-Item -Force -Recurse -Path "$projectRoot" -Include "obj"
 
-    $setupScript = Combine $projectRoot "setup.ps1"
-
-    if (Test-Path $setupScript)
-    {
-        $projectDir = if ($null -ne $repoInfo.RepoDirectory)
-        {
-            $repoInfo.RepoDirectory
-        }
-        else
-        {
-            $projectRoot
-        }
-
-        Write-Information "   running $setupScript"
-        & $setupScript -repoDirectory $projectDir -solutionFile $repoInfo.SolutionFile
-    }
+    RunProjectSetupIfPresent $projectRoot $repoInfo
 }
 
 function TestProject([string] $projectRoot, [string] $projectExtension)

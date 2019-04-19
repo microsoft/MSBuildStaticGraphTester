@@ -115,6 +115,73 @@ function ExecuteAndExitOnFailure([string] $command, [bool] $captureOutput = $fal
     return $output
 }
 
+function GetRepoInfo([string] $pathToRepo)
+{
+    $repoInfoFile = Combine $pathToRepo "repoInfo"
+
+    if (Test-Path $repoInfoFile)
+    {
+        $repoInfo = [PSCustomObject](Get-Content $repoInfoFile | ConvertFrom-Json)
+
+        $repoDirectory = Combine $pathToRepo "repo"
+        $repoInfo | Add-Member -MemberType NoteProperty -Name "RepoDirectory" -Value $repoDirectory
+
+        if ($null -ne $repoInfo.SolutionFile)
+        {
+            $repoInfo.SolutionFile = Combine $repoInfo.RepoDirectory $repoInfo.SolutionFile
+        }
+
+        return $repoInfo
+    }
+    else
+    {
+        return [PSCustomObject]@{
+            RepoAddress = $null
+            RepoLocation = $null
+            SolutionFile = $null
+            RepoDirectory = $null
+        }
+    }
+}
+
+function MaterializeRepo([PSCustomObject] $repoInfo, [string] $repoRoot)
+{
+    $repoAddress = $repoInfo.RepoAddress
+    $repoCommit = $repoInfo.RepoLocation
+    $repoDirectory = $repoInfo.RepoDirectory
+
+    CloneOrUpdateRepo $repoAddress $repoCommit $repoDirectory
+}
+
+function MaterializeRepoIfNecessary([PSCustomObject]$repoInfo)
+{
+    if ($null -ne $repoInfo.RepoAddress)
+    {
+        Write-Information "Materializing $($repoInfo.RepoAddress)"
+        MaterializeRepo $repoInfo $projectRoot
+    }
+}
+
+function RunProjectSetupIfPresent([string]$projectRoot, [PSCustomObject]$repoInfo)
+{
+    $setupScript = Combine $projectRoot "setup.ps1"
+
+    if (Test-Path $setupScript)
+    {
+        $projectDir = if ($null -ne $repoInfo.RepoDirectory)
+        {
+            $repoInfo.RepoDirectory
+        }
+        else
+        {
+            $projectRoot
+        }
+
+        Write-Information "Running setup script $setupScript"
+        & $setupScript -repoDirectory $projectDir -solutionFile $repoInfo.SolutionFile
+    }
+}
+
 $repoPath = [System.IO.Path]::GetFullPath((Combine $PSScriptRoot ".."))
 $projectsDirectory = Combine $repoPath "projects"
 $sourceDirectory = Combine $repoPath "src"
