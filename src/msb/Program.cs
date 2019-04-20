@@ -291,8 +291,17 @@ namespace msb
 
             var topoSortedNodes = graph.ProjectNodesTopologicallySorted;
 
+            var skippedNodesDueToEmptyTargets = new HashSet<ProjectGraphNode>();
+
             foreach (var node in topoSortedNodes)
             {
+                var targets = targetLists[node];
+
+                if (targets.IsEmpty)
+                {
+                    skippedNodesDueToEmptyTargets.Add(node);
+                    continue;
+                }
 
                 var outputCacheFile = graph.GraphRoots.Contains(node) ? null : Path.Combine(cacheRoot, node.CacheFileName());
 
@@ -302,6 +311,12 @@ namespace msb
                 {
                     var reference = node.ProjectReferences.ElementAt(i);
 
+                    if (skippedNodesDueToEmptyTargets.Contains(reference))
+                    {
+                        Trace.Assert(!cacheFiles.ContainsKey(reference), "Skipped nodes do not have cache files");
+                        continue;
+                    }
+
                     Trace.Assert(cacheFiles.ContainsKey(reference), "Each reference must propagate a cache file");
 
                     inputCachesFiles.Add(cacheFiles[reference]);
@@ -309,13 +324,23 @@ namespace msb
 
                 cacheFiles[node] = outputCacheFile;
 
-                var targets = targetLists[node];
-
                 var result = BuildProject(node.ProjectInstance.FullPath, node.ProjectInstance.GlobalProperties, targets, inputCachesFiles.ToArray(), outputCacheFile);
 
                 if (result.OverallResult == BuildResultCode.Failure)
                 {
                     success = false;
+                }
+            }
+
+            if (skippedNodesDueToEmptyTargets.Any())
+            {
+                Console.WriteLine("Skipped projects due to empty targets:");
+
+                foreach (var skippedNode in skippedNodesDueToEmptyTargets)
+                {
+                    var nodePath = skippedNode.ProjectInstance.FullPath;
+                    var targetFramework = skippedNode.ProjectInstance.GetPropertyValue("TargetFramework");
+                    Console.WriteLine($"\t{Path.GetFileNameWithoutExtension(nodePath)}(TargetFramework={targetFramework}):{nodePath}");
                 }
             }
 
