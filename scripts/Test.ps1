@@ -72,7 +72,7 @@ function TestProject([string] $projectRoot, [string] $projectExtension)
     PrintHeader "BuildManager: $projectRoot"
     BuildWithBuildManager $projectRoot $projectExtension $solutionFile
 
-    if ($LASTEXITCODE -ne 0)
+    if (-Not ($?))
     {
         exit
     }
@@ -81,7 +81,7 @@ function TestProject([string] $projectRoot, [string] $projectExtension)
     PrintHeader "Cache roundtrip: $projectRoot"
     BuildWithCacheRoundtripDefault $projectRoot $projectExtension $solutionFile
 
-    if ($LASTEXITCODE -ne 0)
+    if (-Not ($?))
     {
         exit
     }

@@ -31,7 +31,7 @@ function ToGitHash([string] $branchOrCommit)
 
     $discardedOutput =  (git cat-file -e $returnVal 2>&1)
 
-    if ($LASTEXITCODE -ne 0)
+    if (-Not ($?))
     {
         throw "Not a valid git object: [$branchOrCommit]"
     }
@@ -90,7 +90,7 @@ function CloneOrUpdateRepo([string]$address, [string] $location, [string] $repoP
 
 function ExitOnFailure
 {
-    if ($LASTEXITCODE -ne 0)
+    if (-Not ($?))
     {
         exit
     }
