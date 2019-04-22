@@ -57,7 +57,7 @@ function TestProject([string] $projectRoot, [string] $projectExtension)
     Write-Information "RepoInfo object:"
     Write-Information $repoInfo
 
-    MaterializeRepoIfNecessary $repoInfo
+    MaterializeRepoIfNecessary $repoInfo $projectRoot
 
     $solutionFile = if ($null -ne $repoInfo.SolutionFile)
     {

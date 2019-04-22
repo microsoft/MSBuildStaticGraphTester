@@ -8,8 +8,9 @@ param (
 )
 
 # set up the environment
-$setupEnv = $PSScriptRoot + "\BuildRepos.ps1 RedirectEnvironmentToBuildOutputs"
-Invoke-Expression $setupEnv
+Write-Host "Setting up the environment..."
+& "$PSScriptRoot\BuildRepos.ps1" -configuration "Release" -RedirectEnvironmentToBuildOutputs
+Write-Host "Using MSBuild at " $env:MSBuildBootstrapBinDirectory
 
 . "$PSScriptRoot\Common.ps1"
 
@@ -22,10 +23,10 @@ if ($null -eq $repoInfo.RepoDirectory) {
 }
 
 # Materialize and setup the repo
-MaterializeRepoIfNecessary $repoInfo
+MaterializeRepoIfNecessary $repoInfo $projectRoot
 RunProjectSetupIfPresent $projectRoot $repoInfo
 
 # Run bxl
-Write-Information "Running bxl"
+Write-Host "Running bxl"
 $pathToConfig = $repoInfo.RepoDirectory + "\config.dsc"
 & $pathToBxl /c:$pathToConfig /disableProcessRetryOnResourceExhaustion+

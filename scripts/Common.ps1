@@ -153,12 +153,12 @@ function MaterializeRepo([PSCustomObject] $repoInfo, [string] $repoRoot)
     CloneOrUpdateRepo $repoAddress $repoCommit $repoDirectory
 }
 
-function MaterializeRepoIfNecessary([PSCustomObject]$repoInfo)
+function MaterializeRepoIfNecessary([PSCustomObject]$repoInfo, [string] $repoRoot)
 {
     if ($null -ne $repoInfo.RepoAddress)
     {
         Write-Information "Materializing $($repoInfo.RepoAddress)"
-        MaterializeRepo $repoInfo $projectRoot
+        MaterializeRepo $repoInfo $repoRoot
     }
 }
 
