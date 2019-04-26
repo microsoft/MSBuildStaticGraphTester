@@ -1,0 +1,10 @@
+<Project>
+    <ItemGroup>
+        <ProjectReference Include="1\1.csproj" />
+        <ProjectReferenceTargets Include="Build" Targets=".default" />
+    </ItemGroup>
+
+    <Target Name="Build" Condition=" '$(IsGraphBuild)' != 'true' ">
+            <MSBuild Projects="@(ProjectReference)"/>
+    </Target>
+</Project>

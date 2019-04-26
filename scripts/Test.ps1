@@ -52,6 +52,8 @@ function SetupTestProject([string]$projectRoot, [PSCustomObject]$repoInfo)
 
 function TestProject([string] $projectRoot, [string] $projectExtension)
 {
+
+    Write-Information " Testing $projectRoot with build file extension $projectExtension"
     $repoInfo = GetRepoInfo $projectRoot
 
     Write-Information "RepoInfo object:"
@@ -106,6 +108,11 @@ $workingProjectRoots = @{
     "$projectsDirectory\sdk\working" = "csproj"
 }
 
+$customProjectExtensions = @{
+    "traversal" = "proj";
+    "DependencyOn2New" = "customProj"
+}
+
 $brokenProjects = @(
     "oldWPF1",
     "oldWPF-new-2", # generates projects and msbuilds into it
@@ -115,7 +122,7 @@ $brokenProjects = @(
 
 foreach ($directoryWithProjects in $workingProjectRoots.Keys)
 {
-    $projectExtension = $workingProjectRoots[$directoryWithProjects]
+    $projectsRootExtension = $workingProjectRoots[$directoryWithProjects]
 
     foreach ($projectRoot in Get-ChildItem -Directory $directoryWithProjects)
     {
@@ -123,6 +130,17 @@ foreach ($directoryWithProjects in $workingProjectRoots.Keys)
         {
             PrintHeader "Skipping $($projectRoot.FullName)"
             continue;
+        }
+
+        $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectRoot.Fullname)
+
+        if ($customProjectExtensions[$projectName])
+        {
+            $projectExtension = $customProjectExtensions[$projectName]
+        }
+        else
+        {
+            $projectExtension = $projectsRootExtension
         }
 
         TestProject $projectRoot.FullName $projectExtension
