@@ -4,6 +4,10 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
-  <Import Project="$(SrcRoot)MSBuildReferences.props" />
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="Microsoft.Build" />
+    <PackageReference Include="Microsoft.Build.Framework" />
+  </ItemGroup>
 
 </Project>

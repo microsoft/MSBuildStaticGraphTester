@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildNugetVersion Condition="'$(MSBuildNugetVersion)' == ''">16.1.0-preview.59+gd8f1537cf1</MSBuildNugetVersion>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Update="Microsoft.Build.Locator" Version="1.1.2"/>
+    <PackageReference Update="Microsoft.Build.Framework" Version="$(MSBuildNugetVersion)" ExcludeAssets="runtime"/>
+    <PackageReference Update="Microsoft.Build.Runtime" Version="$(MSBuildNugetVersion)" ExcludeAssets="runtime"/>
+    <PackageReference Update="Microsoft.Build" Version="$(MSBuildNugetVersion)" ExcludeAssets="runtime"/>
+    <PackageReference Update="System.Collections.Immutable" Version="1.5.0"/>
+    <PackageReference Update="Graphviz" Version="2.38.0.2"/>
+    <PackageReference Update="GraphViz.NET" Version="1.0.0"/>
+  </ItemGroup>
+</Project>

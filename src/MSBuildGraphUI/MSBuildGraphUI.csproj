@@ -7,12 +7,12 @@
     <MSBuildWarningsAsMessages>MSB3073</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
-  <Import Project="$(SrcRoot)MSBuildReferences.props" />
-
   <ItemGroup>
-    <PackageReference Include="Graphviz" Version="2.38.0.2" IncludeAssets="none" GeneratePathProperty="true" />
-    <PackageReference Include="GraphViz.NET" Version="1.0.0" PrivateAssets="all" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Graphviz" IncludeAssets="none" GeneratePathProperty="true" />
+    <PackageReference Include="GraphViz.NET" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="Microsoft.Build" />
+    <PackageReference Include="Microsoft.Build.Framework" />
   </ItemGroup>
 
   <ItemGroup>
@@ -27,9 +27,13 @@
     <Compile Update="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Update="Form1.Designer.cs">
+      <SubType>Form</SubType>
+    </Compile>
   </ItemGroup>
 
   <Target Name="CopyGraphViz2" AfterTargets="Build">
+    <Exec ContinueOnError="True" Command="mkdir $(OutputPath)\Graphviz" />
     <Exec ContinueOnError="True" Command="robocopy  $(PkgGraphviz) $(OutputPath)\Graphviz">
       <Output TaskParameter="ExitCode" PropertyName="ErrorCode" />
     </Exec>

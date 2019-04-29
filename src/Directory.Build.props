@@ -1,6 +1,5 @@
 <Project>
     <Import Project="RepoLayout.props" />
-
     <PropertyGroup>
         <RestorePackagesPath>$(ArtifactsDir)\NugetCache\</RestorePackagesPath>
 

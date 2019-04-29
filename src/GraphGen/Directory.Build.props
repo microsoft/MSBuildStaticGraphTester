@@ -1,7 +1,0 @@
-<Project>
-    <Import Project="..\Directory.Build.props"/>
-
-    <ItemDefinitionGroup>
-        <PackageReference GeneratePathProperty="true" />
-    </ItemDefinitionGroup>
-</Project>

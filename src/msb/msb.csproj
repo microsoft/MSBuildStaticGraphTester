@@ -5,10 +5,14 @@
     <TargetFramework>net472</TargetFramework>
   </PropertyGroup>
 
-  <Import Project="$(SrcRoot)MSBuildReferences.props" />
-
   <ItemGroup>
     <ProjectReference Include="..\CommonUtilities\CommonUtilities.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Build.Runtime" />
+    <PackageReference Include="Microsoft.Build.Locator" />
+    <PackageReference Include="System.Collections.Immutable" />
   </ItemGroup>
 
 </Project>
