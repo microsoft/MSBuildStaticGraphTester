@@ -1,5 +1,5 @@
 {
-    "RepoAddress": "https://github.com/smera/roslyn.git",
-    "RepoLocation": "staticGraph",
+    "RepoAddress": "https://github.com/dotnet/roslyn.git",
+    "RepoLocation": "0354852dadb7e4d286222051ec9c3cbd6b878755",
     "SolutionFile": "Compilers.sln"
 }

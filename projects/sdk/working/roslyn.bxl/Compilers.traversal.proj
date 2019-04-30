@@ -1,0 +1,90 @@
+<Project DefaultTargets="Build">
+	<ItemGroup>
+		<!-- In this traversal file we need to specify the target protocol ourselves-->
+		<ProjectReferenceTargets Include="Build" Targets="Build"/>
+
+		<ProjectReference Include="src\Compilers\Core\CodeAnalysisTest\Microsoft.CodeAnalysis.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+		<ProjectReference Include="src\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" />
+		<ProjectReference Include="src\Compilers\Server\VBCSCompilerTests\VBCSCompiler.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\CSharp\csc\csc.csproj" />
+		<ProjectReference Include="src\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+		<ProjectReference Include="src\Compilers\CSharp\Test\CommandLine\Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\CSharp\Test\Emit\Microsoft.CodeAnalysis.CSharp.Emit.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\CSharp\Test\IOperation\Microsoft.CodeAnalysis.CSharp.IOperation.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\CSharp\Test\Semantic\Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\CSharp\Test\Symbol\Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\CSharp\Test\Syntax\Microsoft.CodeAnalysis.CSharp.Syntax.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\Test\Resources\Core\Microsoft.CodeAnalysis.Compiler.Test.Resources.csproj" />
+		<ProjectReference Include="src\Compilers\Test\Utilities\CSharp\Microsoft.CodeAnalysis.CSharp.Test.Utilities.csproj" />
+		<ProjectReference Include="src\Compilers\Test\Utilities\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Test.Utilities.vbproj" />
+		<ProjectReference Include="src\Compilers\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
+		<ProjectReference Include="src\Compilers\VisualBasic\Test\CommandLine\Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests.vbproj" />
+		<ProjectReference Include="src\Compilers\VisualBasic\Test\Emit\Microsoft.CodeAnalysis.VisualBasic.Emit.UnitTests.vbproj" />
+		<ProjectReference Include="src\Compilers\VisualBasic\Test\IOperation\Roslyn.Compilers.VisualBasic.IOperation.UnitTests.vbproj" />
+		<ProjectReference Include="src\Compilers\VisualBasic\Test\Semantic\Microsoft.CodeAnalysis.VisualBasic.Semantic.UnitTests.vbproj" />
+		<ProjectReference Include="src\Compilers\VisualBasic\Test\Symbol\Microsoft.CodeAnalysis.VisualBasic.Symbol.UnitTests.vbproj" />
+		<ProjectReference Include="src\Compilers\VisualBasic\Test\Syntax\Microsoft.CodeAnalysis.VisualBasic.Syntax.UnitTests.vbproj" />
+		<ProjectReference Include="src\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
+		<ProjectReference Include="src\Tools\Source\CompilerGeneratorTools\Source\BoundTreeGenerator\CompilersBoundTreeGenerator.csproj">
+			<SetPlatform>platform=x64</SetPlatform> 
+		</ProjectReference>
+		<ProjectReference Include="src\Tools\Source\CompilerGeneratorTools\Source\CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj">
+			<SetPlatform>platform=x64</SetPlatform>
+		</ProjectReference>
+		<ProjectReference Include="src\Tools\Source\CompilerGeneratorTools\Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj">
+			<SetPlatform>platform=x64</SetPlatform>
+		</ProjectReference>
+		<ProjectReference Include="src\Tools\Source\CompilerGeneratorTools\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
+			<SetPlatform>platform=x64</SetPlatform>
+		</ProjectReference>
+		<ProjectReference Include="src\Tools\Source\CompilerGeneratorTools\Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj">
+			<SetPlatform>platform=x64</SetPlatform>
+		</ProjectReference>
+		<ProjectReference Include="src\Compilers\CSharp\Test\WinRT\Microsoft.CodeAnalysis.CSharp.WinRT.UnitTests.csproj" />
+		<ProjectReference Include="src\Compilers\VisualBasic\vbc\vbc.csproj" />
+		<ProjectReference Include="src\Compilers\Core\MSBuildTaskTests\Microsoft.Build.Tasks.CodeAnalysis.UnitTests.csproj" />
+		<ProjectReference Include="src\Tools\Source\RunTests\RunTests.csproj" />
+		<ProjectReference Include="src\Test\Utilities\Portable\Roslyn.Test.Utilities.csproj" />
+		<ProjectReference Include="src\Compilers\Core\MSBuildTask\Microsoft.Build.Tasks.CodeAnalysis.csproj" />
+		<ProjectReference Include="src\Scripting\CoreTest\Microsoft.CodeAnalysis.Scripting.UnitTests.csproj" />
+		<ProjectReference Include="src\Scripting\CSharpTest\Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.csproj" />
+		<ProjectReference Include="src\Scripting\VisualBasicTest\Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests.vbproj" />
+		<ProjectReference Include="src\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
+		<ProjectReference Include="src\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
+		<ProjectReference Include="src\Scripting\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Scripting.vbproj" />
+		<ProjectReference Include="src\Scripting\CoreTestUtilities\Microsoft.CodeAnalysis.Scripting.TestUtilities.csproj" />
+		<ProjectReference Include="src\Interactive\csi\csi.csproj" />
+		<ProjectReference Include="src\Workspaces\Core\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+		<ProjectReference Include="src\Workspaces\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
+		<ProjectReference Include="src\Workspaces\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
+		<ProjectReference Include="src\CodeStyle\Core\Analyzers\Microsoft.CodeAnalysis.CodeStyle.csproj" />
+		<ProjectReference Include="src\CodeStyle\Core\CodeFixes\Microsoft.CodeAnalysis.CodeStyle.Fixes.csproj" />
+		<ProjectReference Include="src\CodeStyle\Core\Tests\Microsoft.CodeAnalysis.CodeStyle.UnitTests.csproj" />
+		<ProjectReference Include="src\CodeStyle\CSharp\Analyzers\Microsoft.CodeAnalysis.CSharp.CodeStyle.csproj" />
+		<ProjectReference Include="src\CodeStyle\CSharp\CodeFixes\Microsoft.CodeAnalysis.CSharp.CodeStyle.Fixes.csproj" />
+		<ProjectReference Include="src\CodeStyle\CSharp\Tests\Microsoft.CodeAnalysis.CSharp.CodeStyle.UnitTests.csproj" />
+		<ProjectReference Include="src\CodeStyle\VisualBasic\Analyzers\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.vbproj" />
+		<ProjectReference Include="src\CodeStyle\VisualBasic\CodeFixes\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.Fixes.vbproj" />
+		<ProjectReference Include="src\CodeStyle\VisualBasic\Tests\Microsoft.CodeAnalysis.VisualBasic.CodeStyle.UnitTests.vbproj" />
+		<ProjectReference Include="src\Tools\ILTools\ILTools.proj" />
+		<ProjectReference Include="src\NuGet\Microsoft.NETCore.Compilers\Microsoft.NETCore.Compilers.Package.csproj" />
+		<ProjectReference Include="src\NuGet\Microsoft.Net.Compilers\Microsoft.Net.Compilers.Package.csproj" />
+		<ProjectReference Include="src\NuGet\Microsoft.CodeAnalysis.Compilers.Package.csproj" />
+		<ProjectReference Include="src\NuGet\Microsoft.CodeAnalysis.Scripting.Package.csproj" />
+		<ProjectReference Include="src\NuGet\Microsoft.CodeAnalysis.Package.csproj" />
+		<ProjectReference Include="src\Tools\CompilerBenchmarks\CompilerBenchmarks.csproj" />
+		<ProjectReference Include="src\Tools\BuildBoss\BuildBoss.csproj" />
+		<ProjectReference Include="src\NuGet\Microsoft.Net.Compilers.Toolset\Microsoft.Net.Compilers.Toolset.Package.csproj" />
+	</ItemGroup>
+	<Target Name="Build"/>
+</Project>
+
+
+<!-- shared projects are not built explicitly> -->
+		<!-- <ProjectReference Include="src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.shproj" /> -->
+		<!-- <ProjectReference Include="src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.shproj" /> -->
+		<!-- <ProjectReference Include="src\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.shproj" /> -->
+		<!-- <ProjectReference Include="src\Dependencies\CodeAnalysis.Debugging\Microsoft.CodeAnalysis.Debugging.shproj" /> -->
+		<!-- <ProjectReference Include="src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.shproj" /> -->
+		<!-- <ProjectReference Include="src\Compilers\Core\CommandLine\CommandLine.shproj" /> -->
