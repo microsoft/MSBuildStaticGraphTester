@@ -1,0 +1,156 @@
+<Project DefaultTargets="Build">
+  <!-- Initialization -->
+
+  <PropertyGroup>
+    <LibFolder>$(MSBuildProjectDirectory)\lib</LibFolder>
+    <SrcFolder>$(MSBuildProjectDirectory)\src</SrcFolder>
+    <BuildFolder>$(MSBuildProjectDirectory)\build</BuildFolder>
+    <MsBuildTasksFolder>$(MSBuildProjectDirectory)\buildtasks</MsBuildTasksFolder>
+    <ArtifactsFolder>$(MSBuildProjectDirectory)\artifacts</ArtifactsFolder>
+    <SqlCeFolder>$(MSBuildProjectDirectory)\lib\sqlce</SqlCeFolder>
+    <SourceArtifactFolder>$(ArtifactsFolder)\Source</SourceArtifactFolder>
+    <MsDeployArtifactFolder>$(ArtifactsFolder)\MsDeploy</MsDeployArtifactFolder>
+    <GalleryArtifactFolder>$(ArtifactsFolder)\Gallery</GalleryArtifactFolder>
+    <ModulesSrcFolder>$(MSBuildProjectDirectory)\src\Orchard.Web\Modules</ModulesSrcFolder>
+    <OrchardCoreSrcFolder>$(MSBuildProjectDirectory)\src\Orchard.Web\Core</OrchardCoreSrcFolder>
+    <ThemesSrcFolder>$(MSBuildProjectDirectory)\src\Orchard.Web\Themes</ThemesSrcFolder>
+
+    <CompileFolder>$(BuildFolder)\Compile</CompileFolder>
+    <WebSitesFolder>$(CompileFolder)\_PublishedWebsites</WebSitesFolder>
+    <StageFolder>$(BuildFolder)\Stage</StageFolder>
+    <MsDeployFolder>$(BuildFolder)\MsDeploy</MsDeployFolder>
+    <PrecompiledFolder>$(BuildFolder)\Precompiled</PrecompiledFolder>
+    <ProfilingFolder>$(BuildFolder)\Profiling</ProfilingFolder>
+    <GalleryFolder>$(BuildFolder)\Gallery</GalleryFolder>
+
+    <BuildPlatform Condition="$(ProgramW6432) != ''">x64</BuildPlatform>
+    <BuildPlatform Condition="$(BuildPlatform) == ''">x86</BuildPlatform>
+    <Configuration Condition="$(Configuration) == ''">Release</Configuration>
+    
+    <OrchardSolution>$(SrcFolder)\Orchard.sln</OrchardSolution>
+    <Solution Condition="$(Solution) == ''">$(OrchardSolution)</Solution>
+
+    <!-- TeamCity build number -->
+    <Version>$(BUILD_NUMBER)</Version>
+
+  </PropertyGroup>
+
+  <!-- Finding the restored NuGet package of NUnit (version number doesn't matter)
+       to be able to reference the test runner executable (http://stackoverflow.com/a/25617556). -->
+  <ItemGroup>
+    <NUnitPackageFiles Include="$(SrcFolder)\packages\NUnit*\tools\nunit-console.exe" />
+    <NUnitPackageToolsFolder Include="@(NUnitPackageFiles->'%(RootDir)%(Directory)'->Distinct())" />
+  </ItemGroup>
+
+  <Import Project="$(LibFolder)\msbuildtasks\MSBuild.Community.Tasks.Targets"/>
+  <Import Project="$(LibFolder)\slowcheetah\SlowCheetah.Transforms.targets"/>
+
+<!-- end of original file, what follows replaces the .sln reference to make Domino work -->
+
+  <ItemGroup>
+		
+		<ProjectReferenceTargets Include="Build" Targets="Build"/>
+  
+        <ProjectReference Include="src\Orchard\Orchard.Framework.csproj"/>
+        <ProjectReference Include="src\Tools\Orchard\Orchard.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Scripting\Orchard.Scripting.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Orchard.Web.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Users\Orchard.Users.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Roles\Orchard.Roles.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Core\Orchard.Core.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Setup\Orchard.Setup.csproj"/>
+        <ProjectReference Include="src\Tools\MSBuild.Orchard.Tasks\MSBuild.Orchard.Tasks.csproj"/>
+        <ProjectReference Include="src\Orchard.Specs\Orchard.Specs.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Themes\Orchard.Themes.csproj"/>
+        <ProjectReference Include="src\Orchard.Profile\Orchard.Profile.csproj"/>
+        <ProjectReference Include="src\Tools\Orchard.Tests\Orchard.Tests.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Modules\Orchard.Modules.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.ContentTypes\Orchard.ContentTypes.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Blogs\Orchard.Blogs.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Tags\Orchard.Tags.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\TinyMce\TinyMce.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.MultiTenancy\Orchard.MultiTenancy.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Media\Orchard.Media.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Email\Orchard.Email.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Comments\Orchard.Comments.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.jQuery\Orchard.jQuery.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.ArchiveLater\Orchard.ArchiveLater.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Indexing\Orchard.Indexing.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Search\Orchard.Search.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Lucene\Lucene.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Widgets\Orchard.Widgets.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.CodeGeneration\Orchard.CodeGeneration.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Migrations\Orchard.Migrations.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Themes\Themes.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.PublishLater\Orchard.PublishLater.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Lists\Orchard.Lists.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Pages\Orchard.Pages.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Localization\Orchard.Localization.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Scripting.Dlr\Orchard.Scripting.Dlr.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.DesignerTools\Orchard.DesignerTools.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.MediaPicker\Orchard.MediaPicker.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Recipes\Orchard.Recipes.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.ImportExport\Orchard.ImportExport.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Warmup\Orchard.Warmup.csproj"/>
+        <ProjectReference Include="src\Orchard.WarmupStarter\Orchard.WarmupStarter.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Tokens\Orchard.Tokens.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Forms\Orchard.Forms.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Rules\Orchard.Rules.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Markdown\Markdown.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.TaskLease\Orchard.TaskLease.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Projections\Orchard.Projections.csproj"/>
+
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Fields\Orchard.Fields.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Alias\Orchard.Alias.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Autoroute\Orchard.Autoroute.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.AntiSpam\Orchard.AntiSpam.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.CustomForms\Orchard.CustomForms.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.ContentPicker\Orchard.ContentPicker.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.ContentPermissions\Orchard.ContentPermissions.csproj"/>
+        
+        <ProjectReference Include="src\Orchard.Web\Modules\SysCache\SysCache.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Workflows\Orchard.Workflows.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.MediaProcessing\Orchard.MediaProcessing.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Scripting.CSharp\Orchard.Scripting.CSharp.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Taxonomies\Orchard.Taxonomies.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.ImageEditor\Orchard.ImageEditor.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.MediaLibrary\Orchard.MediaLibrary.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.OutputCache\Orchard.OutputCache.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Upgrade\Upgrade.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Azure\Orchard.Azure.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.SecureSocketsLayer\Orchard.SecureSocketsLayer.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Templates\Orchard.Templates.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.JobsQueue\Orchard.JobsQueue.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Caching\Orchard.Caching.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Azure.MediaServices\Orchard.Azure.MediaServices.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.AuditTrail\Orchard.AuditTrail.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.MessageBus\Orchard.MessageBus.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Redis\Orchard.Redis.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Layouts\Orchard.Layouts.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.DynamicForms\Orchard.DynamicForms.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Dashboards\Orchard.Dashboards.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Conditions\Orchard.Conditions.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Resources\Orchard.Resources.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.OpenId\Orchard.OpenId.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Glimpse\Orchard.Glimpse.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Packaging\Orchard.Packaging.csproj"/>
+
+        <!-- Tests -->
+        
+        <ProjectReference Include="src\Orchard.Tests\Orchard.Framework.Tests.csproj"/>
+        <ProjectReference Include="src\Orchard.Web.Tests\Orchard.Web.Tests.csproj"/>
+        <ProjectReference Include="src\Orchard.Tests.Modules\Orchard.Tests.Modules.csproj"/>
+        <ProjectReference Include="src\Orchard.Core.Tests\Orchard.Core.Tests.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Tokens\Tests\Orchard.Tokens.Tests.csproj"/>
+        <ProjectReference Include="src\Orchard.Web\Modules\Orchard.Projections\Tests\Orchard.Projections.Tests.csproj"/>
+        <ProjectReference Include="src\Orchard.Azure.Tests\Orchard.Azure.Tests.csproj"/>
+        
+        <!-- Present on disk but not included in the .sln -->
+        
+        <!--<ProjectReference Include="src\Orchard.Web\Modules\Orchard.Azure.MediaServices\Tests\Microsoft.CloudMedia.Tests\Microsoft.CloudMedia.Tests.csproj"/>-->
+        <!-- <ProjectReference Include="src\Orchard.Web\Modules\Orchard.TaskLease\Tests\Orchard.TaskLease.Tests\Orchard.TaskLease.Tests.csproj"/> -->
+        <!-- <ProjectReference Include="src\Orchard.Web\Modules\Orchard.JobsQueue\Tests\Orchard.Messaging.Tests.csproj"/> -->
+        
+  </ItemGroup>
+  <Target Name="Build"/>
+</Project>

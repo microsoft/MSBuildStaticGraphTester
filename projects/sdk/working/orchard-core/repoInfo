@@ -1,5 +1,5 @@
 {
-    "RepoAddress": "https://github.com/smera/OrchardCore.git",
-    "RepoLocation": "dev",
+    "RepoAddress": "https://github.com/OrchardCMS/OrchardCore.git",
+    "RepoLocation": "a660cf30a0ce12015d865d412471ed1632a2255a",
     "SolutionFile": "OrchardCore.sln"
 }
