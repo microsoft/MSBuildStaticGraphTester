@@ -3,7 +3,7 @@ param (
     [switch]$BuildMSBuild,
     [switch]$RedirectEnvironmentToBuildOutputs,
     [string]$Repos,
-    [string]$MSBuildBranch = "roslynStaticGraph",
+    [string]$MSBuildBranch = "bootstrap64",
     [string]$MSBuildRepoAddress = "https://github.com/cdmihai/msbuild.git",
     [string]$SDKBranch = "master",
     [string]$SDKRepoAddress = "https://github.com/dotnet/sdk.git",
