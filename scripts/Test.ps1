@@ -114,8 +114,6 @@ $customProjectExtensions = @{
 }
 
 $brokenProjects = @(
-    "oldWPF1",
-    "oldWPF-new-2", # generates projects and msbuilds into it
     "new2-directInnerBuildReference", # needs investigation
     "orchard-core" # requires transitive project references
 )
