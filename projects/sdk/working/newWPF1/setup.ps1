@@ -1,0 +1,1 @@
+& $env:MSBuildBootstrapExe /t:restore $PSScriptRoot\newWPF1.csproj
