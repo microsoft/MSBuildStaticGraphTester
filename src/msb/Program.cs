@@ -329,6 +329,7 @@ namespace msb
                 if (result.OverallResult == BuildResultCode.Failure)
                 {
                     success = false;
+                    break;
                 }
             }
 
