@@ -27,7 +27,7 @@ function BuildMSBuildRepo([string]$MSBuildRepo)
 
 function BuildSdkRepo([string]$SdkRepo)
 {
-    & "$SdkRepo\eng\common\build.ps1" -build -restore -configuration $Configuration /clp:verbosity=diagnostic
+    & "$SdkRepo\eng\common\build.ps1" -binaryLog -build -restore -configuration $Configuration /clp:verbosity=diagnostic
     ExitOnFailure
 }
 
