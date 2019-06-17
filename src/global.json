@@ -1,0 +1,8 @@
+{
+    "sdk": {
+        "version": "3.0.100-preview6-012264"
+    },
+    "msbuild-sdks": {
+        "Microsoft.Build.CentralPackageVersions": "2.0.36"
+    }
+}
