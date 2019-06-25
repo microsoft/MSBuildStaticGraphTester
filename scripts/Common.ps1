@@ -178,7 +178,7 @@ function RunProjectSetupIfPresent([string]$projectRoot, [PSCustomObject]$repoInf
         }
 
         Write-Information "Running setup script $setupScript"
-        & $setupScript -repoDirectory $projectDir -solutionFile $repoInfo.SolutionFile
+        ExecuteAndExitOnFailure "$setupScript -repoDirectory $projectDir -solutionFile $($repoInfo.SolutionFile)"
     }
 }
 
