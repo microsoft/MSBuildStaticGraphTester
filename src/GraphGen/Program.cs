@@ -51,19 +51,9 @@ namespace GraphGen
 
         private string LoadGraph(FileInfo projectFile)
         {
-            var files = new List<string>();
-            if (projectFile.Extension == ".sln")
-            {
-                files.AddRange(SolutionParser.GetProjectFiles(projectFile.FullName));
-            }
-            else
-            {
-                files.Add(projectFile.FullName);
-            }
-
             Console.WriteLine("Loading graph...");
             var sw = Stopwatch.StartNew();
-            var graph = new ProjectGraph(files, ProjectCollection.GlobalProjectCollection);
+            var graph = new ProjectGraph(projectFile.FullName, ProjectCollection.GlobalProjectCollection);
             Console.WriteLine($@"{projectFile} loaded {graph.ProjectNodes.Count} node(s) in {sw.ElapsedMilliseconds}ms.");
 
             return GraphVis.Create(graph);
