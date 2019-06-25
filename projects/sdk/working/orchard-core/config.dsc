@@ -21,7 +21,7 @@ config({
                             .add("MicrosoftNETBuildExtensionsTargets", Environment.getStringValue("MicrosoftNETBuildExtensionsTargets")),
 
             // An explicit entry point avoids cached graph misses due to changes in the directory root membership
-            fileNameEntryPoints: [r`OrchardCore.traversal.proj`],
+            fileNameEntryPoints: [r`OrchardCore.sln`],
             
             // If the location of MSBuild is set beforehand, honor it. Otherwise leave it to the default behavior.
             msBuildSearchLocations: Environment.hasVariable("MSBuildBootstrapBinDirectory") ? [Environment.getDirectoryValue("MSBuildBootstrapBinDirectory")] : undefined,

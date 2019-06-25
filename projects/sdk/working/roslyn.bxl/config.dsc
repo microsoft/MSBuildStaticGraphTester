@@ -5,7 +5,7 @@ config({
             moduleName: "Compilers",
             root: d`.`,
             msBuildSearchLocations: [Environment.getDirectoryValue("MSBuildBootstrapBinDirectory")],
-            fileNameEntryPoints: [r`Compilers.traversal.proj`],
+            fileNameEntryPoints: [r`Compilers.sln`],
 
             // The following are the required env variables the repo needs
             environment: Map.empty<string, string>()
