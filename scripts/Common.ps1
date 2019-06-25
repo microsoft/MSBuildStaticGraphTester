@@ -1,8 +1,5 @@
 Set-StrictMode -Version Latest
 
-$InformationPreference = "Continue"
-$DebugPreference = "Continue"
-
 function Combine
 {
     [string[]] $argsAsStrings = $args
@@ -88,31 +85,45 @@ function CloneOrUpdateRepo([string]$address, [string] $location, [string] $repoP
     }
 }
 
+function PrintStackTrace(){
+    foreach($line in (Get-PSCallStack))
+    {
+        Write-Information $line
+    }
+}
+
+function VariableIsDeclared([string] $aVariable, [string]$scope="local")
+{
+    if (Get-Variable -Name $aVariable -scope $scope -ErrorAction SilentlyContinue)
+    {
+        return $true
+    }
+    else
+    {
+        return $false
+    }
+}
+
 function ExitOnFailure
 {
     if (-Not ($?))
     {
-        exit
+        exit 1
+    }
+
+    if ((VariableIsDeclared "LastExitCode" "global") -and ($global:LastExitCode -ne 0))
+    {
+        exit 1
     }
 }
 
-function ExecuteAndExitOnFailure([string] $command, [bool] $captureOutput = $false)
+function ExecuteAndExitOnFailure([string] $command)
 {
     Write-Information "Running: [$command]"
-    $output = $null
-
-    if ($captureOutput)
-    {
-        $output = Invoke-Expression $command
-    }
-    else
-    {
-        Invoke-Expression $command
-    }
+    
+    Invoke-Expression $command
 
     ExitOnFailure
-
-    return $output
 }
 
 function GetRepoInfo([string] $pathToRepo)
@@ -182,6 +193,16 @@ function RunProjectSetupIfPresent([string]$projectRoot, [PSCustomObject]$repoInf
     }
 }
 
-$repoPath = [System.IO.Path]::GetFullPath((Combine $PSScriptRoot ".."))
-$projectsDirectory = Combine $repoPath "projects"
-$sourceDirectory = Combine $repoPath "src"
+if(-not (VariableIsDeclared "commonIsInitialized" "script"))
+{
+    
+    $ErrorActionPreference = "Stop"
+    $InformationPreference = "Continue"
+    $DebugPreference = "Continue"
+
+    $repoPath = [System.IO.Path]::GetFullPath((Combine $PSScriptRoot ".."))
+    $projectsDirectory = Combine $repoPath "projects"
+    $sourceDirectory = Combine $repoPath "src"
+
+    $script:commonIsInitialized = "initialized"
+}

@@ -74,19 +74,13 @@ function TestProject([string] $projectRoot, [string] $projectExtension)
     PrintHeader "BuildManager: $projectRoot"
     BuildWithBuildManager $projectRoot $projectExtension $solutionFile
 
-    if (-Not ($?))
-    {
-        exit
-    }
+    ExitOnFailure
 
     SetupTestProject $projectRoot $repoInfo
     PrintHeader "Cache roundtrip: $projectRoot"
     BuildWithCacheRoundtripDefault $projectRoot $projectExtension $solutionFile
 
-    if (-Not ($?))
-    {
-        exit
-    }
+    ExitOnFailure
 }
 
 if ($singleProjectDirectory) {
