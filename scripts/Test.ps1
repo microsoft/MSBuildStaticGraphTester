@@ -108,8 +108,11 @@ $customProjectExtensions = @{
 }
 
 $brokenProjects = @(
-    "new2-directInnerBuildReference", # needs investigation
-    "orchard-core" # requires transitive project references
+    # needs investigation
+    "new2-directInnerBuildReference",
+    # requires transitive project references
+    "orchard-core",
+    "roslyn.bxl"
 )
 
 foreach ($directoryWithProjects in $workingProjectRoots.Keys)
