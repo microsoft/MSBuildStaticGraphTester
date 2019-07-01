@@ -195,7 +195,7 @@ function RunProjectSetupIfPresent([string]$projectRoot, [PSCustomObject]$repoInf
 
 if(-not (VariableIsDeclared "commonIsInitialized" "script"))
 {
-    
+
     $ErrorActionPreference = "Stop"
     $InformationPreference = "Continue"
     $DebugPreference = "Continue"
