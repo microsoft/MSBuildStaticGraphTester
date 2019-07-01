@@ -112,6 +112,8 @@ $brokenProjects = @(
     "new2-directInnerBuildReference",
     # requires transitive project references
     "orchard-core",
+    # needs investigation
+    "traversal",
     "roslyn.bxl"
 )
 
