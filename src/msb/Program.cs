@@ -231,8 +231,8 @@ namespace msb
             }
             else
             {
-                Console.WriteLine($"Getting projects from solution {solutionFile}");
-                projectFiles = GetProjectFilesFromSolutionFile(solutionFile).ToImmutableList();
+                Console.WriteLine($"Loading graph from solution {solutionFile}");
+                projectFiles = ImmutableList.Create(solutionFile);
             }
 
             Trace.Assert(projectFiles.Count > 0, $"no projects found in {projectRoot}");
@@ -329,6 +329,7 @@ namespace msb
                 if (result.OverallResult == BuildResultCode.Failure)
                 {
                     success = false;
+                    break;
                 }
             }
 
@@ -495,11 +496,6 @@ namespace msb
             sb.Append("}");
 
             return sb.ToString();
-        }
-
-        private static IEnumerable<string> GetProjectFilesFromSolutionFile(string solutionFile)
-        {
-            return SolutionParser.GetProjectFiles(solutionFile);
         }
     }
 

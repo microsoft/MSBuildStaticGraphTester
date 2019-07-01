@@ -38,23 +38,11 @@ namespace MSBuildGraphUI
 
         private async void LoadGraph(FileInfo project, string graphOutputFile)
         {
-            var files = new List<ProjectGraphEntryPoint>();
-
-            if (project.Extension == ".sln")
-            {
-                files.AddRange(SolutionParser.GetProjectFiles(project.FullName)
-                     .Select(f => new ProjectGraphEntryPoint(f)));
-            }
-            else
-            {
-                files.Add(new ProjectGraphEntryPoint(project.FullName));
-            }
-
             _statusBarLabel.Text = $@"Loading {project.FullName}...";
 
             // Load the graph from MSBuild
             var stopwatch = Stopwatch.StartNew();
-            var graph = await Task.Factory.StartNew(()=> new ProjectGraph(files, ProjectCollection.GlobalProjectCollection, ProjectInstanceFactory));
+            var graph = await Task.Factory.StartNew(()=> new ProjectGraph(new []{new ProjectGraphEntryPoint(project.FullName)}, ProjectCollection.GlobalProjectCollection, ProjectInstanceFactory));
             stopwatch.Stop();
             _statusBarLabel.Text = $@"{project.Name} loaded {graph.ProjectNodes.Count} node(s) in {stopwatch.ElapsedMilliseconds}ms.";
 

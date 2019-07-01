@@ -15,7 +15,7 @@ config({
                             .add("UseCommonOutputDirectory", Environment.hasVariable("RunInContainer")? "false" : "true"),
             
             // An explicit entry point avoids cached graph misses due to changes in the directory root membership
-            fileNameEntryPoints: [r`Orchard.traversal.proj`],
+            fileNameEntryPoints: [r`src/Orchard.sln`],
             
             // If the location of MSBuild is set beforehand, honor it. Otherwise leave it to the default behavior.
             msBuildSearchLocations: Environment.hasVariable("MSBuildBootstrapBinDirectory") ? [Environment.getDirectoryValue("MSBuildBootstrapBinDirectory")] : undefined,

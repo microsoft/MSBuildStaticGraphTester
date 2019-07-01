@@ -3,7 +3,7 @@ param (
     [switch]$BuildMSBuild,
     [switch]$RedirectEnvironmentToBuildOutputs,
     [string]$Repos,
-    [string]$MSBuildBranch = "schedulerBug",
+    [string]$MSBuildBranch = "solutionSupportForStaticGraph",
     [string]$MSBuildRepoAddress = "https://github.com/cdmihai/msbuild.git",
     [string]$SDKBranch = "master",
     [string]$SDKRepoAddress = "https://github.com/dotnet/sdk.git",
@@ -19,7 +19,7 @@ if (-not $Repos)
 
 function BuildMSBuildRepo([string]$MSBuildRepo)
 {
-    & "$MSBuildRepo\eng\common\build.ps1" -build -restore -ci -pack -configuration $Configuration /p:CreateBootstrap=true /p:ApplyPartialNgenOptimization=false
+    & "$MSBuildRepo\eng\common\build.ps1" -build -restore -pack -configuration $Configuration /p:CreateBootstrap=true /p:ApplyPartialNgenOptimization=false
     # & "$MSBuildRepo\eng\common\build.ps1" -build -restore -configuration $Configuration /p:CreateBootstrap=true
     # & "$MSBuildRepo\eng\common\build.ps1" -ci -pack -configuration $Configuration /p:ApplyPartialNgenOptimization=false
     ExitOnFailure
@@ -27,7 +27,7 @@ function BuildMSBuildRepo([string]$MSBuildRepo)
 
 function BuildSdkRepo([string]$SdkRepo)
 {
-    & "$SdkRepo\eng\common\build.ps1" -binaryLog -build -restore -configuration $Configuration /clp:verbosity=diagnostic
+    & "$SdkRepo\eng\common\build.ps1" -build -restore -configuration $Configuration
     ExitOnFailure
 }
 

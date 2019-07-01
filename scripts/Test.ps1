@@ -74,19 +74,13 @@ function TestProject([string] $projectRoot, [string] $projectExtension)
     PrintHeader "BuildManager: $projectRoot"
     BuildWithBuildManager $projectRoot $projectExtension $solutionFile
 
-    if (-Not ($?))
-    {
-        exit
-    }
+    ExitOnFailure
 
     SetupTestProject $projectRoot $repoInfo
     PrintHeader "Cache roundtrip: $projectRoot"
     BuildWithCacheRoundtripDefault $projectRoot $projectExtension $solutionFile
 
-    if (-Not ($?))
-    {
-        exit
-    }
+    ExitOnFailure
 }
 
 if ($singleProjectDirectory) {
@@ -114,8 +108,13 @@ $customProjectExtensions = @{
 }
 
 $brokenProjects = @(
-    "new2-directInnerBuildReference", # needs investigation
-    "orchard-core" # requires transitive project references
+    # needs investigation
+    "new2-directInnerBuildReference",
+    # requires transitive project references
+    "orchard-core",
+    # needs investigation
+    "traversal",
+    "roslyn.bxl"
 )
 
 foreach ($directoryWithProjects in $workingProjectRoots.Keys)
