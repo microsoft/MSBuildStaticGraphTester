@@ -1,4 +1,5 @@
 param (
+    [ValidateSet("Release", "Debug")]
     [string]$Configuration = "Release",
     [switch]$BuildRepos
 )

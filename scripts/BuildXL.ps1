@@ -11,6 +11,7 @@ param (
 Write-Host "Setting up the environment..."
 & "$PSScriptRoot\BuildRepos.ps1" -configuration "Release" -RedirectEnvironmentToBuildOutputs
 Write-Host "Using MSBuild at " $env:MSBuildBootstrapBinDirectory
+Write-Host "Using BuildXL at " $pathToBxl
 
 . "$PSScriptRoot\Common.ps1"
 
