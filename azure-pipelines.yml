@@ -2,9 +2,9 @@ trigger:
 - master
 
 variables:
-  solution: 'src\src.sln'
-  buildPlatform: 'Any CPU'
   buildConfiguration: 'Release'
+  system.debug: true
+  system_accesstoken: $(System.AccessToken)
 
 jobs:
 - job: BuildOnWindows
@@ -12,22 +12,11 @@ jobs:
   pool:
     name: 'Hosted Windows 2019 with VS2019'
   steps:
-  - task: DotNetCoreInstaller@0
-    displayName: 'Install .net core 3.0 (preview)'
+  - task: PowerShell@2
     inputs:
-      version: '3.0.100-preview6-012264'
-  - task: MSBuild@1
+      filePath: "scripts/Build.ps1"
+      arguments: "-BuildRepos"
+  - task: PowerShell@2
     inputs:
-      solution: '$(solution)'
-      msbuildVersion: '16.0'
-      msbuildArguments: '/m /restore'
-  - task: VSTest@2
-    inputs:
-      testSelector: 'testAssemblies'
-      testAssemblyVer2: | 
-        src\**\*test*.dll
-        !src\**\obj\**
-      searchFolder: '$(System.DefaultWorkingDirectory)'
-      runOnlyImpactedTests: false
-      runInParallel: true
-      codeCoverageEnabled: true
+      filePath: "scripts/Test.ps1"
+      arguments: "-includeMSBuildTests"
