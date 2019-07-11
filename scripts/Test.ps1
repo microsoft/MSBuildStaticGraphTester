@@ -1,6 +1,8 @@
 param(
     [string]$singleProjectDirectory,
-    [string]$projectExtension
+    [string]$projectExtension,
+    [switch]$includeBuildXLTests,
+    [switch]$includeMSBuildTests
     )
 
 . "$PSScriptRoot\Common.ps1"
@@ -50,7 +52,7 @@ function SetupTestProject([string]$projectRoot, [PSCustomObject]$repoInfo)
     RunProjectSetupIfPresent $projectRoot $repoInfo
 }
 
-function TestProject([string] $projectRoot, [string] $projectExtension)
+function TestProjectWithMSBuild([string] $projectRoot, [string] $projectExtension)
 {
 
     Write-Information " Testing $projectRoot with build file extension $projectExtension"
@@ -83,63 +85,100 @@ function TestProject([string] $projectRoot, [string] $projectExtension)
     ExitOnFailure
 }
 
+function TestProjectWithBuildXL([string] $projectRoot)
+{
+    PrintHeader "BuildXL: $projectRoot"
+
+    $BuildXLScript = Combine $PSScriptRoot "BuildXL.ps1"
+
+    ExecuteAndExitOnFailure "$BuildXLScript -projectRoot $projectRoot -pathToBxl $env:BuildXLExe"
+}
+
 if ($singleProjectDirectory) {
     Write-Information "Single Project Mode"
 
-    if (!$projectExtension)
+    if ($includeMSBuildTests)
     {
-        $projectExtension = "csproj"
+        if (!$projectExtension)
+        {
+            $projectExtension = "csproj"
+        }
+
+        TestProjectWithMSBuild $singleProjectDirectory $projectExtension
     }
 
-    TestProject $singleProjectDirectory $projectExtension
+    if ($includeBuildXLTests)
+    {
+        TestProjectWithBuildXL $singleProjectDirectory
+    }
+
     exit
 }
 
 Write-Information "Batch Project Mode"
 
-$workingProjectRoots = @{
-    "$projectsDirectory\non-sdk\working" = "proj";
-    "$projectsDirectory\sdk\working" = "csproj"
-}
-
-$customProjectExtensions = @{
-    "traversal" = "proj";
-    "DependencyOn2New" = "customProj"
-}
-
-$brokenProjects = @(
-    # needs investigation
-    "new2-directInnerBuildReference",
-    # requires transitive project references
-    "orchard-core",
-    # needs investigation
-    "traversal",
-    "roslyn.bxl"
-)
-
-foreach ($directoryWithProjects in $workingProjectRoots.Keys)
+if ($includeMSBuildTests)
 {
-    $projectsRootExtension = $workingProjectRoots[$directoryWithProjects]
-
-    foreach ($projectRoot in Get-ChildItem -Directory $directoryWithProjects)
-    {
-        if ($brokenProjects.Contains($projectRoot.Name))
-        {
-            PrintHeader "Skipping $($projectRoot.FullName)"
-            continue;
-        }
-
-        $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectRoot.Fullname)
-
-        if ($customProjectExtensions[$projectName])
-        {
-            $projectExtension = $customProjectExtensions[$projectName]
-        }
-        else
-        {
-            $projectExtension = $projectsRootExtension
-        }
-
-        TestProject $projectRoot.FullName $projectExtension
+    $workingProjectRoots = @{
+        "$projectsDirectory\non-sdk\working" = "proj";
+        "$projectsDirectory\sdk\working" = "csproj"
     }
+    
+    $customProjectExtensions = @{
+        "traversal" = "proj";
+        "DependencyOn2New" = "customProj"
+    }
+    
+    $brokenProjects = @(
+        # needs investigation
+        "new2-directInnerBuildReference",
+        # requires transitive project references
+        "orchard-core",
+        # needs investigation
+        "traversal",
+        "roslyn.bxl"
+    )
+    
+    foreach ($directoryWithProjects in $workingProjectRoots.Keys)
+    {
+        $projectsRootExtension = $workingProjectRoots[$directoryWithProjects]
+    
+        foreach ($projectRoot in Get-ChildItem -Directory $directoryWithProjects)
+        {
+            if ($brokenProjects.Contains($projectRoot.Name))
+            {
+                PrintHeader "Skipping $($projectRoot.FullName)"
+                continue;
+            }
+    
+            $projectName = [System.IO.Path]::GetFileNameWithoutExtension($projectRoot.Fullname)
+    
+            if ($customProjectExtensions[$projectName])
+            {
+                $projectExtension = $customProjectExtensions[$projectName]
+            }
+            else
+            {
+                $projectExtension = $projectsRootExtension
+            }
+    
+            TestProjectWithMSBuild $projectRoot.FullName $projectExtension
+        }
+    }
+}
+
+if ($includeBuildXLTests)
+{
+    $BuildXLRepos = @(
+        "sdk\working\orchard",
+        "sdk\working\orchard-core",
+        "sdk\working\roslyn.bxl"
+    )
+
+    foreach($BuildXLRepo in $BuildXLRepos)
+    {
+        $projectRoot = Combine $projectsDirectory $BuildXLRepo
+        TestProjectWithBuildXL $projectRoot
+    }
+
 }
