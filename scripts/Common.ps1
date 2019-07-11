@@ -108,11 +108,13 @@ function ExitOnFailure
 {
     if (-Not ($?))
     {
+        Write-Information "Exiting due to `$? != true"
         exit 1
     }
 
     if ((VariableIsDeclared "LastExitCode" "global") -and ($global:LastExitCode -ne 0))
     {
+        Write-Information "Exiting due to `$LastExitCode != 0 "
         exit 1
     }
 }
