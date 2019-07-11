@@ -59,7 +59,9 @@ function CloneOrUpdateRepo([string]$address, [string] $location, [string] $repoP
             $locationHash = ToGitHash $location
             Write-Information "[$location] converted to [$locationHash]"
 
-            ExecuteAndExitOnFailure "git checkout $locationHash"
+            ExecuteAndExitOnFailure "git checkout -q $locationHash"
+
+            ExecuteAndExitOnFailure "git log -1"
 
             Pop-Location
         }
@@ -74,7 +76,9 @@ function CloneOrUpdateRepo([string]$address, [string] $location, [string] $repoP
 
             ExecuteAndExitOnFailure "git fetch origin"
 
-            ExecuteAndExitOnFailure "git checkout $locationHash"
+            ExecuteAndExitOnFailure "git checkout -q $locationHash"
+
+            ExecuteAndExitOnFailure "git log -1"
 
             Pop-Location
         }
