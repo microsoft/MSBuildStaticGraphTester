@@ -108,12 +108,14 @@ function ExitOnFailure
 {
     if (-Not ($?))
     {
+        PrintStackTrace
         Write-Information "Exiting due to `$? != true"
         exit 1
     }
 
     if ((VariableIsDeclared "LastExitCode" "global") -and ($global:LastExitCode -ne 0))
     {
+        PrintStackTrace
         Write-Information "Exiting due to `$LastExitCode != 0 "
         exit 1
     }
@@ -205,6 +207,12 @@ if(-not (VariableIsDeclared "commonIsInitialized" "script"))
     $repoPath = [System.IO.Path]::GetFullPath((Combine $PSScriptRoot ".."))
     $projectsDirectory = Combine $repoPath "projects"
     $sourceDirectory = Combine $repoPath "src"
+
+    if ((VariableIsDeclared "LastExitCode" "global") -and ($global:LastExitCode -ne 0))
+    {
+        Write-Warning "`$global:LastExitCode=$global:LastExitCode. Resetting back to 0."
+        $global:LastExitCode = 0
+    }
 
     $script:commonIsInitialized = "initialized"
 }
