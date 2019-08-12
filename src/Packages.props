@@ -11,5 +11,6 @@
     <PackageReference Update="System.Collections.Immutable" Version="1.5.0"/>
     <PackageReference Update="Graphviz" Version="2.38.0.2"/>
     <PackageReference Update="GraphViz.NET" Version="1.0.0"/>
+    <PackageReference Update="System.Resources.Extensions" Version="4.6.0-preview8.19379.2"/>
   </ItemGroup>
 </Project>

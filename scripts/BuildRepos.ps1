@@ -3,7 +3,7 @@ param (
     [switch]$BuildMSBuild,
     [switch]$RedirectEnvironmentToBuildOutputs,
     [string]$Repos,
-    [string]$MSBuildBranch = "solutionSupportForStaticGraph",
+    [string]$MSBuildBranch = "clarifyDocumentation",
     [string]$MSBuildRepoAddress = "https://github.com/cdmihai/msbuild.git",
     [string]$SDKBranch = "master",
     [string]$SDKRepoAddress = "https://github.com/dotnet/sdk.git",
