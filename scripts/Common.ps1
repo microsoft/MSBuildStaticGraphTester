@@ -130,7 +130,7 @@ function ExecuteAndExitOnFailure([string] $command)
     ExitOnFailure
 }
 
-function GetRepoInfo([string] $pathToRepo)
+function GetRepoInfo([string] $pathToRepo, [string] $entryProjectOverride = $null)
 {
     $repoInfoFile = Combine $pathToRepo "repoInfo"
 
@@ -146,6 +146,21 @@ function GetRepoInfo([string] $pathToRepo)
             $repoInfo.SolutionFile = Combine $repoInfo.RepoDirectory $repoInfo.SolutionFile
         }
 
+        $actualEntryProjectFile = if ($null -ne $entryProjectOverride)
+        {
+            $entryProjectOverride
+        }
+        elseif ($null -ne $repoInfo.SolutionFile)
+        {
+            $repoInfo.SolutionFile
+        }
+        else
+        {
+            $null
+        }
+
+        $repoInfo | Add-Member -MemberType NoteProperty -Name `EntryProjectFile` -Value $actualEntryProjectFile
+
         return $repoInfo
     }
     else
@@ -154,7 +169,8 @@ function GetRepoInfo([string] $pathToRepo)
             RepoAddress = $null
             RepoLocation = $null
             SolutionFile = $null
-            RepoDirectory = $null
+            RepoDirectory = $pathToRepo
+            EntryProjectFile = $entryProjectOverride
         }
     }
 }
@@ -193,13 +209,12 @@ function RunProjectSetupIfPresent([string]$projectRoot, [PSCustomObject]$repoInf
         }
 
         Write-Information "Running setup script $setupScript"
-        ExecuteAndExitOnFailure "$setupScript -repoDirectory $projectDir -solutionFile $($repoInfo.SolutionFile)"
+        ExecuteAndExitOnFailure "$setupScript -repoDirectory $projectDir -solutionFile $($repoInfo.EntryProjectFile)"
     }
 }
 
 if(-not (VariableIsDeclared "commonIsInitialized" "script"))
 {
-
     $ErrorActionPreference = "Stop"
     $InformationPreference = "Continue"
     $DebugPreference = "Continue"
