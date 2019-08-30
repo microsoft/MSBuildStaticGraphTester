@@ -126,8 +126,21 @@ namespace GraphGen
                     throw new Exception($"Unknown extension: {outFileInfo.Extension}");
 
             }
-            
-            byte[] output = wrapper.GenerateGraph(graphText, saveType);
+
+            var currentDirectory = Directory.GetCurrentDirectory();
+
+            byte[] output;
+
+            try
+            {
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                output = wrapper.GenerateGraph(graphText, saveType);
+            }
+            finally
+            {
+                Directory.SetCurrentDirectory(currentDirectory);
+            }
+
             File.WriteAllBytes(outFile, output);
 
             Console.WriteLine();
