@@ -17,6 +17,7 @@ namespace GraphGen
             try
             {
                 var outFile = args.Length > 1 ? args[1] : "out.png";
+                outFile = Path.GetFullPath(outFile);
 
                 // GraphGen.exe <proj-file> ?<out.png> ?<msbuild-path>
                 if (args.Length == 0)
@@ -38,7 +39,15 @@ namespace GraphGen
 
                 var graphText = new Program().LoadGraph(new FileInfo(projectFile));
 
-                GraphVis.Save(graphText, outFile);
+                if (outFile.EndsWith(".txt"))
+                {
+                    File.WriteAllText(outFile, graphText);
+                    Console.Out.WriteLine($"Dot notation written to {outFile}");
+                }
+                else
+                {
+                    GraphVis.Save(graphText, outFile);
+                }
             }
             catch (Exception e)
             {
