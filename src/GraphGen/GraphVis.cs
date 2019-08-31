@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,31 +17,27 @@ namespace GraphGen
 {
     public class GraphVis
     {
-        public static string Create(ConcurrentDictionary<string, ProjectGraphNode> projects)
+        public static string Create(IEnumerable<ProjectGraphNode> projects)
         {
             return Create(projects, new GraphVisOptions());
         }
 
-        public static string Create(ProjectGraph graphNodes)
+        public static string Create(ProjectGraph graph)
         {
-            return Create(graphNodes, new GraphVisOptions());
+            return Create(graph, new GraphVisOptions());
         }
 
-        public static string Create(ProjectGraph graphNodes, GraphVisOptions options)
+        public static string Create(ProjectGraph graph, GraphVisOptions options)
         {
             // I don't really remember why I did the hash thing. I think I was concerned with duplicate nodes?
             var projects = new ConcurrentDictionary<string, ProjectGraphNode>();
 
-            foreach (var node in graphNodes.ProjectNodes)
-            {
-                var propsHash = GraphVis.HashGlobalProps(node.ProjectInstance.GlobalProperties);
-                projects.TryAdd(node.ProjectInstance.FullPath + propsHash, node);
-            }
+            var selectedProjects = graph.ProjectNodes.Where(p => !p.ProjectInstance.FullPath.Contains("dirs.proj"));
 
-            return Create(projects, options);
+            return Create(selectedProjects, options);
         }
 
-        public static string Create(ConcurrentDictionary<string, ProjectGraphNode> projects, GraphVisOptions options)
+        public static string Create(IEnumerable<ProjectGraphNode> graphNodes, GraphVisOptions options)
         {
             HashSet<ProjectGraphNode> seen = new HashSet<ProjectGraphNode>();
 
@@ -49,30 +46,29 @@ namespace GraphGen
             //var nodes = new StringBuilder();
             var clusters = new StringBuilder();
 
-            foreach (var group in projects
-                .Where(n => !n.Value.ProjectInstance.FullPath.Contains("dirs.proj"))
-                .GroupBy(kvp => kvp.Value.ProjectInstance.FullPath, (p, plist) => new { ProjectGroupName = p, Projects = projects.Where(p2=>p2.Value.ProjectInstance.FullPath == p).ToList()}))
+            foreach (var group in graphNodes
+                .GroupBy(n => n.ProjectInstance.FullPath, (p, plist) => new { ProjectGroupName = p, Projects = plist}))
             {
-                GraphVisCluster cluster = new GraphVisCluster(@group.ProjectGroupName);
+                GraphVisCluster cluster = new GraphVisCluster(group.ProjectGroupName);
 
-                foreach (var node in @group.Projects)
+                foreach (var node in group.Projects)
                 {
-                    var graphNode = new GraphVisNode(node.Value);
+                    var graphNode = new GraphVisNode(node);
                     cluster.AddNode(graphNode);
                     
-                    if (seen.Contains(node.Value)) continue;
-                    seen.Add(node.Value);
+                    if (seen.Contains(node)) continue;
+                    seen.Add(node);
                     
                     //nodes.AppendLine(graphNode.Create());
 
-                    foreach (var subNode in node.Value.ProjectReferences)
+                    foreach (var subNode in node.ProjectReferences)
                     {
                         var subGraphVisNode = new GraphVisNode(subNode);
                         var edgeString = new GraphVisEdge(graphNode, subGraphVisNode);
 
                         edges.AppendLine(edgeString.Create());
 
-                        //if (!seen.Contains(node.Value))
+                        //if (!seen.Contains(node))
                         //    nodes.AppendLine(subGraphVisNode.Create());
                     }
                 }
@@ -126,8 +122,21 @@ namespace GraphGen
                     throw new Exception($"Unknown extension: {outFileInfo.Extension}");
 
             }
-            
-            byte[] output = wrapper.GenerateGraph(graphText, saveType);
+
+            var currentDirectory = Directory.GetCurrentDirectory();
+
+            byte[] output;
+
+            try
+            {
+                Directory.SetCurrentDirectory(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location));
+                output = wrapper.GenerateGraph(graphText, saveType);
+            }
+            finally
+            {
+                Directory.SetCurrentDirectory(currentDirectory);
+            }
+
             File.WriteAllBytes(outFile, output);
 
             Console.WriteLine();
