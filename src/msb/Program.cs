@@ -113,8 +113,8 @@ namespace msb
             if (args.Length < _minimumArgumentCount || (args.Length > 0 && args[0].IndexOfAny(new[] {'h', '?'}) >= 0))
             {
                 Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {SingleProjectArg} <project file> <cache root>");
-                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {CacheRoundtripArg} <project root> <cache root> [project file extension without dot] [solution file]");
-                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {BuildManagerArg} <project root> [project file extension without dot] [solution file]");
+                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {CacheRoundtripArg} <project root> <cache root> [project file extension without dot] [entryProjectFile]");
+                Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {BuildManagerArg} <project root> [project file extension without dot] [entryProjectFile]");
                 return 0;
             }
 
@@ -166,20 +166,20 @@ namespace msb
 
             var projectRootIndex = _executionTypeIndex + 1;
             var projectExtensionIndex = _executionTypeIndex + 2;
-            var solutionFileIndex = _executionTypeIndex + 3;
+            var entryProjectFileIndex = _executionTypeIndex + 3;
 
             var projectRoot = args[projectRootIndex];
             var projectFileExtension = projectExtensionIndex <= args.Count - 1
                 ? args[projectExtensionIndex]
                 : "csproj";
-            var solutionFile = solutionFileIndex == args.Count - 1
-                ? args[solutionFileIndex]
+            var entryProjectFile = entryProjectFileIndex == args.Count - 1
+                ? args[entryProjectFileIndex]
                 : null;
 
             Trace.Assert(Directory.Exists(projectRoot), $"Directory does not exist: {projectRoot}");
             Trace.Assert(projectFileExtension[0] != '.');
 
-            var projectFiles = GetProjects(projectRoot, solutionFile, projectFileExtension);
+            var projectFiles = GetEntrypointProjects(projectRoot, entryProjectFile, projectFileExtension);
 
             using (var buildManager = new BuildManager())
             {
@@ -215,24 +215,28 @@ namespace msb
             }
         }
 
-        private static ImmutableList<string> GetProjects(string projectRoot, string solutionFile, string projectFileExtension)
+        private static ImmutableList<string> GetEntrypointProjects(string projectRoot, string entryPointProject, string projectExtension)
         {
-            Trace.Assert(!projectFileExtension.EndsWith(".sln"));
-            Trace.Assert(!solutionFile?.EndsWith("proj") ?? true);
+            Trace.Assert(!projectExtension.EndsWith(".sln"));
 
             ImmutableList<string> projectFiles;
-            if (solutionFile == null)
+            if (entryPointProject == null)
             {
-                var projectWildcard = $"*.{projectFileExtension}";
+                var projectWildcard = $"*.{projectExtension}";
 
                 Console.WriteLine($"Solution file not found. Getting projects by scanning for {projectWildcard} in {projectRoot}");
+
+                Trace.Assert(Directory.Exists(projectRoot));
 
                 projectFiles = Directory.GetFiles(projectRoot, projectWildcard, SearchOption.AllDirectories).ToImmutableList();
             }
             else
             {
-                Console.WriteLine($"Loading graph from solution {solutionFile}");
-                projectFiles = ImmutableList.Create(solutionFile);
+                Console.WriteLine($"Loading graph from solution {entryPointProject}");
+
+                Trace.Assert(File.Exists(entryPointProject));
+
+                projectFiles = ImmutableList.Create(entryPointProject);
             }
 
             Trace.Assert(projectFiles.Count > 0, $"no projects found in {projectRoot}");
@@ -248,15 +252,15 @@ namespace msb
             var projectRootIndex = _executionTypeIndex + 1;
             var cacheRootIndex = _executionTypeIndex + 2;
             var projectExtensionIndex = _executionTypeIndex + 3;
-            var solutionFileIndex = _executionTypeIndex + 4;
+            var entryProjectFileIndex = _executionTypeIndex + 4;
 
             var cacheRoot = args[cacheRootIndex];
             var projectRoot = args[projectRootIndex];
             var projectFileExtension = projectExtensionIndex <= args.Count - 1
                 ? args[projectExtensionIndex]
                 : "csproj";
-            var solutionFile = solutionFileIndex == args.Count - 1
-                ? args[solutionFileIndex]
+            var entryProjectFile = entryProjectFileIndex == args.Count - 1
+                ? args[entryProjectFileIndex]
                 : null;
 
             Trace.Assert(Directory.Exists(projectRoot), $"Directory does not exist: {projectRoot}");
@@ -265,7 +269,7 @@ namespace msb
             FileUtils.DeleteDirectoryWithRetry(cacheRoot);
             Directory.CreateDirectory(cacheRoot);
 
-            var projectFiles = GetProjects(projectRoot, solutionFile, projectFileExtension);
+            var projectFiles = GetEntrypointProjects(projectRoot, entryProjectFile, projectFileExtension);
 
             return BuildGraphWithCacheFileRoundtrip(projectFiles, cacheRoot)
                 ? 0

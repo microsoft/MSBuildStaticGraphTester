@@ -1,5 +1,6 @@
 param(
     [string]$singleProjectDirectory,
+    [string]$singleProjectEntryFile = $null,
     [string]$projectExtension,
     [switch]$includeBuildXLTests,
     [switch]$includeMSBuildTests
@@ -52,35 +53,26 @@ function SetupTestProject([string]$projectRoot, [PSCustomObject]$repoInfo)
     RunProjectSetupIfPresent $projectRoot $repoInfo
 }
 
-function TestProjectWithMSBuild([string] $projectRoot, [string] $projectExtension)
+function TestProjectWithMSBuild([string] $projectRoot, [string] $projectExtension, [string] $entryProjectFile = $null)
 {
 
     Write-Information " Testing $projectRoot with build file extension $projectExtension"
-    $repoInfo = GetRepoInfo $projectRoot
+    $repoInfo = GetRepoInfo $projectRoot $entryProjectFile
 
     Write-Information "RepoInfo object:"
     Write-Information $repoInfo
 
     MaterializeRepoIfNecessary $repoInfo $projectRoot
 
-    $solutionFile = if ($null -ne $repoInfo.SolutionFile)
-    {
-        $repoInfo.SolutionFile
-    }
-    else
-    {
-        $null
-    }
-
-    SetupTestProject $projectRoot $repoInfo
+    SetupTestProject $projectRoot $repoInfo 
     PrintHeader "BuildManager: $projectRoot"
-    BuildWithBuildManager $projectRoot $projectExtension $solutionFile
+    BuildWithBuildManager $projectRoot $projectExtension $repoInfo.EntryProjectFile
 
     ExitOnFailure
 
     SetupTestProject $projectRoot $repoInfo
     PrintHeader "Cache roundtrip: $projectRoot"
-    BuildWithCacheRoundtripDefault $projectRoot $projectExtension $solutionFile
+    BuildWithCacheRoundtripDefault $projectRoot $projectExtension $repoInfo.EntryProjectFile
 
     ExitOnFailure
 }
@@ -104,7 +96,7 @@ if ($singleProjectDirectory) {
             $projectExtension = "csproj"
         }
 
-        TestProjectWithMSBuild $singleProjectDirectory $projectExtension
+        TestProjectWithMSBuild $singleProjectDirectory $projectExtension $singleProjectEntryFile
     }
 
     if ($includeBuildXLTests)
