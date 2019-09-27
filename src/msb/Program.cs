@@ -106,12 +106,15 @@ namespace msb
             }
         }
 
+        private static HashSet<string> possibleHelpArgs = new HashSet<string>(StringComparer.OrdinalIgnoreCase){ "-h", @"\h", "-?", @"\?"};
+
         private static int Main(string[] args)
         {
             _minimumArgumentCount = 4;
 
-            if (args.Length < _minimumArgumentCount || (args.Length > 0 && args[0].IndexOfAny(new[] {'h', '?'}) >= 0))
+            if (args.Length < _minimumArgumentCount || args.Length > 0 && possibleHelpArgs.Contains(args[0].Trim()))
             {
+                Console.WriteLine($"Invalid arguments: {string.Join(" ", args)}");
                 Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {SingleProjectArg} <project file> <cache root>");
                 Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {CacheRoundtripArg} <project root> <cache root> [project file extension without dot] [entryProjectFile]");
                 Console.WriteLine($"usage: <msbuild binaries root> <bool: use console logger> {BuildManagerArg} <project root> [project file extension without dot] [entryProjectFile]");

@@ -14,7 +14,6 @@
     <PackageReference Include="Microsoft.Build.Runtime" />
     <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="System.Collections.Immutable" />
-    <PackageReference Include="System.Resources.Extensions" />
   </ItemGroup>
 
 </Project>
