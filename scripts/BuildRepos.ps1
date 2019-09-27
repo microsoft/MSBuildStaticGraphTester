@@ -3,8 +3,8 @@ param (
     [switch]$BuildMSBuild,
     [switch]$RedirectEnvironmentToBuildOutputs,
     [string]$Repos,
-    [string]$MSBuildBranch = "clarifyDocumentation",
-    [string]$MSBuildRepoAddress = "https://github.com/cdmihai/msbuild.git",
+    [string]$MSBuildBranch = "master",
+    [string]$MSBuildRepoAddress = "https://github.com/microsoft/msbuild.git",
     [string]$SDKBranch = "master",
     [string]$SDKRepoAddress = "https://github.com/dotnet/sdk.git",
     [string]$Configuration = "Release"
