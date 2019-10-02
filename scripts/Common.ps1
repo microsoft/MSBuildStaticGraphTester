@@ -146,7 +146,7 @@ function GetRepoInfo([string] $pathToRepo, [string] $entryProjectOverride = $nul
             $repoInfo.SolutionFile = Combine $repoInfo.RepoDirectory $repoInfo.SolutionFile
         }
 
-        $actualEntryProjectFile = if ($null -ne $entryProjectOverride)
+        $actualEntryProjectFile = if ($entryProjectOverride)
         {
             $entryProjectOverride
         }
@@ -159,7 +159,7 @@ function GetRepoInfo([string] $pathToRepo, [string] $entryProjectOverride = $nul
             $null
         }
 
-        $repoInfo | Add-Member -MemberType NoteProperty -Name `EntryProjectFile` -Value $actualEntryProjectFile
+        $repoInfo | Add-Member -NotePropertyName EntryProjectFile -NotePropertyValue $actualEntryProjectFile
 
         return $repoInfo
     }
