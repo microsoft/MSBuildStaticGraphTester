@@ -23,4 +23,5 @@ config({
                             .add("DOTNET_ROOT", Environment.getStringValue("DOTNET_ROOT"))
         },  
     ],
+    disableDefaultSourceResolver: true,
 });
