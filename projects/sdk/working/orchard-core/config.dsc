@@ -35,4 +35,5 @@ config({
             useLegacyProjectIsolation: true,
         },  
     ],
+    disableDefaultSourceResolver: true,
 });
