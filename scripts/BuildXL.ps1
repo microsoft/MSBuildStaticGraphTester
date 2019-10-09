@@ -4,7 +4,9 @@ param (
     [Parameter(Mandatory=$true)]
     [string]$projectRoot,
     [Parameter(Mandatory=$true)]
-    [string]$pathToBxl
+    [string]$pathToBxl,
+    [Parameter(Mandatory=$false)]
+    [string]$bxlExtraArgs
 )
 
 # set up the environment
@@ -30,4 +32,4 @@ RunProjectSetupIfPresent $projectRoot $repoInfo
 # Run bxl
 Write-Host "Running bxl"
 $pathToConfig = $repoInfo.RepoDirectory + "\config.dsc"
-& $pathToBxl /c:$pathToConfig /disableProcessRetryOnResourceExhaustion+
+& $pathToBxl /c:$pathToConfig $bxlExtraArgs
