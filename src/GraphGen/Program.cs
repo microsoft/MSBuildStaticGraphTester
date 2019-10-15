@@ -1,5 +1,5 @@
 ﻿using Microsoft.Build.Evaluation;
-using Microsoft.Build.Experimental.Graph;
+using Microsoft.Build.Graph;
 using Microsoft.Build.Locator;
 using System;
 using System.Collections.Generic;

@@ -13,7 +13,7 @@ using Microsoft.Build.Execution;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
-using Microsoft.Build.Experimental.Graph;
+using Microsoft.Build.Graph;
 
 namespace msb
 {

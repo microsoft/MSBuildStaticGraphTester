@@ -11,7 +11,7 @@ using GraphVizWrapper;
 using GraphVizWrapper.Commands;
 using GraphVizWrapper.Queries;
 using Microsoft.Build.Execution;
-using Microsoft.Build.Experimental.Graph;
+using Microsoft.Build.Graph;
 
 namespace GraphGen
 {

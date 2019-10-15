@@ -1,7 +1,7 @@
 ﻿using GraphGen;
 using Microsoft.Build.Evaluation;
 using Microsoft.Build.Execution;
-using Microsoft.Build.Experimental.Graph;
+using Microsoft.Build.Graph;
 using System;
 using System.Collections.Generic;
 using System.Data;
