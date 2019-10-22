@@ -39,14 +39,15 @@ namespace GraphGen
 
         public static string Create(IEnumerable<ProjectGraphNode> graphNodes, GraphVisOptions options)
         {
-            HashSet<ProjectGraphNode> seen = new HashSet<ProjectGraphNode>();
+            var graphNodesSet = graphNodes.ToHashSet();
+            var seen = new HashSet<ProjectGraphNode>();
 
             var sb = new StringBuilder();
             var edges = new StringBuilder();
             //var nodes = new StringBuilder();
             var clusters = new StringBuilder();
 
-            foreach (var group in graphNodes
+            foreach (var group in graphNodesSet
                 .GroupBy(n => n.ProjectInstance.FullPath, (p, plist) => new { ProjectGroupName = p, Projects = plist}))
             {
                 GraphVisCluster cluster = new GraphVisCluster(group.ProjectGroupName);
@@ -58,10 +59,9 @@ namespace GraphGen
                     
                     if (seen.Contains(node)) continue;
                     seen.Add(node);
-                    
-                    //nodes.AppendLine(graphNode.Create());
 
-                    foreach (var subNode in node.ProjectReferences)
+                    // skip references not in the set of input nodes, in case a subgraph was given
+                    foreach (var subNode in node.ProjectReferences.Where(r => graphNodesSet.Contains(r)))
                     {
                         var subGraphVisNode = new GraphVisNode(subNode);
                         var edgeString = new GraphVisEdge(graphNode, subGraphVisNode);
