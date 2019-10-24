@@ -12,6 +12,8 @@
     <PackageReference Include="Microsoft.Build.Locator" />
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Framework" />
+    <PackageReference Include="System.Collections.Immutable" />
+    <PackageReference Include="CommandLineParser" />
   </ItemGroup>
 
   <ItemGroup>

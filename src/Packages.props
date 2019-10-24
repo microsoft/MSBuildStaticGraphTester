@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <MSBuildNugetVersion Condition="'$(MSBuildNugetVersion)' == ''">16.1.0-preview.59+gd8f1537cf1</MSBuildNugetVersion>
+    <MSBuildNugetVersion Condition="'$(MSBuildNugetVersion)' == ''">16.4.0-preview-19516-02</MSBuildNugetVersion>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Update="Microsoft.Build.Locator" Version="1.1.2"/>
@@ -12,5 +12,12 @@
     <PackageReference Update="Graphviz" Version="2.38.0.2"/>
     <PackageReference Update="GraphViz.NET" Version="1.0.0"/>
     <PackageReference Update="System.Resources.Extensions" Version="4.6.0-preview8.19379.2"/>
+    <PackageReference Update="CommandLineParser" Version="2.6.0"/>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(IsTestProject)' == 'true'">
+    <PackageReference Update="xunit" Version="2.4.1"/>
+    <PackageReference Update="xunit.runner.visualstudio" Version="2.4.1"/>
+    <PackageReference Update="Shouldly" Version="3.0.2"/>
   </ItemGroup>
 </Project>
