@@ -1,16 +1,81 @@
 trigger:
 - master
 
-variables:
-  system.debug: true
-  SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+# variables:
+#   system.debug: true
+#   SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+#   SYSTEM.ACCESSTOKEN: $(System.AccessToken)
 
 jobs:
 - job: BuildOnWindows
   displayName: "Build and test on Windows"
   pool:
-    name: 'Hosted Windows 2019 with VS2019'
+    name: 'Hosted'
+    vmImage: 'windows-2019'
   steps:
-  - task: PowerShell@2
+  # - task: PowerShell@2
+  #   displayName: Show repo contents
+  #   inputs:
+  #     targetType: inline
+  #     script: |
+  #       Write-Output "$(Build.SourcesDirectory)"
+  #       Get-ChildItem "$(Build.SourcesDirectory)"
+
+  # - task: PowerShell@2
+  #   displayName: Clone repository
+  #   inputs:
+  #     targetType: inline
+  #     script: |
+  #       & "C:\Program Files\Git\cmd\git.exe" clone https://github.com/microsoft/msbuild.git "$(Build.SourcesDirectory)\repo\msbuild2"
+
+  # - task: PowerShell@2
+  #   displayName: Checkout repository
+  #   inputs:
+  #     targetType: inline
+  #     script: |
+  #       cd "$(Build.SourcesDirectory)\repo\msbuild2"
+  #       & "C:\Program Files\Git\cmd\git.exe" checkout ee8294b5597fe21ca5c44c8fd4c142d27fcec2cb
+
+  # - task: PowerShell@2
+  #   displayName: log repository
+  #   inputs:
+  #     targetType: inline
+  #     script: |
+  #       cd "$(Build.SourcesDirectory)\repo\msbuild2"
+  #       & "C:\Program Files\Git\cmd\git.exe" log -3
+
+  # - task: PowerShell@2
+  #   displayName: Show repo root content
+  #   inputs:
+  #     targetType: inline
+  #     script: |
+  #       cd "$(Build.SourcesDirectory)\repo\msbuild2"
+  #       Get-ChildItem -Path .
+  #       Get-ChildItem *
+
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk'
     inputs:
-      filePath: "scripts/corpus-ci.ps1"
+      packageType: sdk
+      version: 3.0.100-preview6-012264
+      includePreviewVersions: true
+      installationPath: $(Agent.ToolsDirectory)/dotnet
+
+  - task: PowerShell@2
+    displayName: 'Print .NET Core information'
+    inputs:
+      targetType: inline
+      script: |
+        dotnet --info
+
+  - task: PowerShell@2
+    displayName: Build and bootstrap repo source
+    inputs:
+      filePath: "scripts/build.ps1"
+      arguments: "-BuildRepos"
+
+  - task: PowerShell@2
+    displayName: Run MSBuild Tests
+    inputs:
+      filePath: "scripts/Test.ps1"
+      arguments: "-includeMSBuildTests"
