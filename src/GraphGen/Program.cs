@@ -2,6 +2,7 @@
 using Microsoft.Build.Graph;
 using Microsoft.Build.Locator;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -51,6 +52,10 @@ namespace GraphGen
             {
                 var outFile = Path.GetFullPath(args.OutputFile);
 
+                var directory = Path.GetDirectoryName(outFile);
+                var filename = Path.GetFileNameWithoutExtension(outFile);
+                var extension = Path.GetExtension(outFile);
+
                 var projectFile = args.InputFile;
 
                 if (string.IsNullOrEmpty(args.MSBuildBinDirectory))
@@ -62,16 +67,16 @@ namespace GraphGen
                     MSBuildLocator.RegisterMSBuildPath(args.MSBuildBinDirectory);
                 }
 
-                var graphText = new Program().LoadGraph(new FileInfo(projectFile), string.IsNullOrEmpty(args.EndNodes) ? null : args.EndNodes.Split(';'));
+                var dotNotations = new Program().GetDotNotations(new FileInfo(projectFile), string.IsNullOrEmpty(args.EndNodes) ? null : args.EndNodes.Split(';'));
 
-                if (outFile.EndsWith(".txt"))
+                var renderingFunction = extension.EndsWith(".txt")
+                    ? (Action<string, string>)((path, dotNotation) => File.WriteAllText(path, dotNotation))
+                    : (Action<string, string>)((path, dotNotation) => GraphVis.Save(dotNotation, path));
+
+                foreach (var dotNotation in dotNotations)
                 {
-                    File.WriteAllText(outFile, graphText);
-                    Console.Out.WriteLine($"Dot notation written to {outFile}");
-                }
-                else
-                {
-                    GraphVis.Save(graphText, outFile);
+                    var outputFile = Path.Combine(directory, $"{filename}{dotNotation.pathPostfix}{extension}");
+                    renderingFunction(outputFile, dotNotation.contents);
                 }
 
                 return 0;
@@ -85,7 +90,7 @@ namespace GraphGen
             }
         }
 
-        private string LoadGraph(FileInfo projectFile, string[] endNodes)
+        private IEnumerable<(string pathPostfix, string contents)> GetDotNotations(FileInfo projectFile, string[] endNodes)
         {
             Console.WriteLine("Loading graph...");
 
@@ -100,12 +105,10 @@ namespace GraphGen
                 var paths = GraphPaths.FindAllPathsBetween(graph.GraphRoots, endGraphNodes);
 
                 var deduplicatedNodes = paths.SelectMany(p => p).ToHashSet();
-                return GraphVis.Create(deduplicatedNodes);
+                yield return ($"_PathsEndingIn_{string.Join(",", endNodes)}", GraphVis.Create(deduplicatedNodes));
             }
-            else
-            {
-                return GraphVis.Create(graph);
-            }
+            
+                yield return ("", GraphVis.Create(graph));
         }
     }
 }
