@@ -33,6 +33,10 @@ config({
             // Building in isolation is still not compatible with enabling transitive project references.
             // Keeping this building in legacy mode until MSBuild provides proper support for it at graph construction time
             useLegacyProjectIsolation: true,
+
+            // Enabling shared compilation in this repo also starts Razor build server for code generation. This is 
+            // not VBCSCompiler server process, but a Razor-specific server which then tries to survive the pip.
+            useManagedSharedCompilation: false,
         },  
     ],
     disableDefaultSourceResolver: true,
