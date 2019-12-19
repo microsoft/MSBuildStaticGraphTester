@@ -10,7 +10,6 @@ jobs:
 - job: BuildOnWindows
   displayName: "Build and test on Windows"
   pool:
-    name: 'Hosted'
     vmImage: 'windows-2019'
   steps:
   # - task: PowerShell@2
