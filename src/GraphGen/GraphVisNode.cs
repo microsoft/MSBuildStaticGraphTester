@@ -40,7 +40,9 @@ namespace GraphGen
 
         private static (string, string) GetNodeInfo(ProjectGraphNode node)
         {
-            var label = Path.GetFileNameWithoutExtension(node.ProjectInstance.FullPath);
+            // labels with '-' in them screw up graphvis so replace them with '_'
+            var label = Path.GetFileNameWithoutExtension(node.ProjectInstance.FullPath).Replace("-", "_");
+
             if (!_nodes.ContainsKey(node))
             {
                 _nodes.Add(node, label.Replace(".", string.Empty) + _count);
