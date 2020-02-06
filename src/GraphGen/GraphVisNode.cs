@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -9,9 +8,12 @@ namespace GraphGen
 {
     public class GraphVisNode
     {
-        private readonly ProjectGraphNode _node;
+        // Ensure the same number is returned for the same ProjectGraphNode object
+        private static readonly Dictionary<ProjectGraphNode, string> Nodes = new Dictionary<ProjectGraphNode, string>();
+        public static int Count = 1;
         private readonly IEnumerable<string> _entryTargets;
         private readonly string _label;
+        private readonly ProjectGraphNode _node;
 
         public string Name { get; }
 
@@ -60,23 +62,19 @@ namespace GraphGen
             return $"  {Name} [label={label}, shape=box];"; //, color=\"0.650 0.200 1.000\"];";
         }
 
-        // Ensure the same number is returned for the same ProjectGraphNode object
-        private static Dictionary<ProjectGraphNode, string> _nodes = new Dictionary<ProjectGraphNode, string>();
-        public static int _count = 1;
-
         private static (string, string) GetNodeInfo(ProjectGraphNode node)
         {
             // labels with '-' in them screw up graphvis so replace them with '_'
             var label = Path.GetFileNameWithoutExtension(node.ProjectInstance.FullPath).Replace("-", "_");
 
-            if (!_nodes.ContainsKey(node))
+            if (!Nodes.ContainsKey(node))
             {
-                _nodes.Add(node, label.Replace(".", string.Empty) + _count);
-                _count++;
+                Nodes.Add(node, label.Replace(".", string.Empty) + Count);
+                Count++;
             }
-            var name = _nodes[node];
+            var name = Nodes[node];
             //var name = _current;//label + Program.HashGlobalProps(node.ProjectInstance.GlobalProperties);
-            
+
             return (name, label);
         }
     }
