@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -17,28 +19,32 @@ namespace GraphGen
 {
     public class GraphVis
     {
-        public static string Create(IEnumerable<ProjectGraphNode> projects)
+        public static string Create(
+            IEnumerable<ProjectGraphNode> projects,
+            IReadOnlyDictionary<ProjectGraphNode, ImmutableList<string>> entryTargetsPerNode = null)
         {
-            return Create(projects, new GraphVisOptions());
+            return Create(projects, new GraphVisOptions(), entryTargetsPerNode);
         }
 
-        public static string Create(ProjectGraph graph)
+        public static string Create(ProjectGraph graph, IReadOnlyDictionary<ProjectGraphNode, ImmutableList<string>> entryTargetsPerNode = null)
         {
-            return Create(graph, new GraphVisOptions());
+            return Create(graph, new GraphVisOptions(), entryTargetsPerNode);
         }
 
-        public static string Create(ProjectGraph graph, GraphVisOptions options)
+        public static string Create(ProjectGraph graph, GraphVisOptions options, IReadOnlyDictionary<ProjectGraphNode, ImmutableList<string>> entryTargetsPerNode = null)
         {
-            // I don't really remember why I did the hash thing. I think I was concerned with duplicate nodes?
-            var projects = new ConcurrentDictionary<string, ProjectGraphNode>();
-
             var selectedProjects = graph.ProjectNodes.Where(p => !p.ProjectInstance.FullPath.Contains("dirs.proj"));
 
-            return Create(selectedProjects, options);
+            return Create(selectedProjects, options, entryTargetsPerNode);
         }
 
-        public static string Create(IEnumerable<ProjectGraphNode> graphNodes, GraphVisOptions options)
+        public static string Create(
+            IEnumerable<ProjectGraphNode> graphNodes,
+            GraphVisOptions options,
+            IReadOnlyDictionary<ProjectGraphNode, ImmutableList<string>> entryTargetsPerNode = null)
         {
+            entryTargetsPerNode = entryTargetsPerNode ?? new Dictionary<ProjectGraphNode, ImmutableList<string>>();
+
             var graphNodesSet = graphNodes.ToHashSet();
             var seen = new HashSet<ProjectGraphNode>();
 
@@ -54,7 +60,7 @@ namespace GraphGen
 
                 foreach (var node in group.Projects)
                 {
-                    var graphNode = new GraphVisNode(node);
+                    var graphNode = new GraphVisNode(node, GetEntryTargets(node));
                     cluster.AddNode(graphNode);
                     
                     if (seen.Contains(node)) continue;
@@ -63,7 +69,7 @@ namespace GraphGen
                     // skip references not in the set of input nodes, in case a subgraph was given
                     foreach (var subNode in node.ProjectReferences.Where(r => graphNodesSet.Contains(r)))
                     {
-                        var subGraphVisNode = new GraphVisNode(subNode);
+                        var subGraphVisNode = new GraphVisNode(subNode, GetEntryTargets(subNode));
                         var edgeString = new GraphVisEdge(graphNode, subGraphVisNode);
 
                         edges.AppendLine(edgeString.Create());
@@ -86,6 +92,13 @@ namespace GraphGen
             sb.AppendLine("}");
             GraphVisNode._count = 1;
             return sb.ToString();
+
+            IEnumerable<string> GetEntryTargets(ProjectGraphNode node)
+            {
+                return entryTargetsPerNode.ContainsKey(node)
+                    ? (IEnumerable<string>) entryTargetsPerNode[node]
+                    : Array.Empty<string>();
+            }
         }
 
         public static void Save(string graphText, string outFile)
