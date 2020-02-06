@@ -1,17 +1,17 @@
-﻿using Microsoft.Build.Evaluation;
-using Microsoft.Build.Graph;
-using Microsoft.Build.Locator;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using CommandLine;
 using CommonUtilities;
+using Microsoft.Build.Evaluation;
+using Microsoft.Build.Graph;
+using Microsoft.Build.Locator;
 
 namespace GraphGen
 {
-    class CommandLineArguments
+    internal class CommandLineArguments
     {
         [Value(0, MetaName = "input file",
             HelpText = "Input file to generate a project from (solution or msbuild project)",
@@ -21,21 +21,27 @@ namespace GraphGen
         [Value(1, MetaName = "output file",
             HelpText = "Output file containing the graph picture.",
             Required = false)]
-        public  string OutputFile { get; set; } = "out.png";
-        
+        public string OutputFile { get; set; } = "out.png";
+
         [Value(2, MetaName = "msbuild bin directory",
             HelpText = "Directory containing msbuild dlls used to parse the graph. If absent, a VS instance gets used.",
             Required = false)]
         public string MSBuildBinDirectory { get; set; }
 
+        [Option('t', "targets",
+            HelpText = "Semicolon delimited list of entry targets. Default targets are used if this parameters is not set.")]
+        public string Targets { get; set; }
+
         [Option('e', "end-nodes",
-            HelpText = "Only print the paths from the graph roots to this semicolon separated list of end nodes. End nodes can be specified in full path or partial paths (e.g. foo.csproj, or src/foo/foo.csproj, etc)")]
+            HelpText =
+                "Only print the paths from the graph roots to this semicolon separated list of end nodes. End nodes can be specified in full path or partial paths (e.g. foo.csproj, or src/foo/foo.csproj, etc)"
+            )]
         public string EndNodes { get; set; }
     }
 
-    class Program
+    internal class Program
     {
-        static int Main(string[] args)
+        private static int Main(string[] args)
         {
             var parseResult = Parser.Default.ParseArguments<CommandLineArguments>(args);
             var returnValue = parseResult
@@ -67,11 +73,19 @@ namespace GraphGen
                     MSBuildLocator.RegisterMSBuildPath(args.MSBuildBinDirectory);
                 }
 
-                var dotNotations = new Program().GetDotNotations(new FileInfo(projectFile), string.IsNullOrEmpty(args.EndNodes) ? null : args.EndNodes.Split(';'));
+                var targets = string.IsNullOrEmpty(args.Targets)
+                    ? null
+                    : args.Targets.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+
+                var endNodes = string.IsNullOrEmpty(args.EndNodes)
+                    ? null
+                    : args.EndNodes.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
+
+                var dotNotations = new Program().GetDotNotations(new FileInfo(projectFile), targets, endNodes);
 
                 var renderingFunction = extension.EndsWith(".txt")
-                    ? (Action<string, string>)((path, dotNotation) => File.WriteAllText(path, dotNotation))
-                    : (Action<string, string>)((path, dotNotation) => GraphVis.Save(dotNotation, path));
+                    ? (path, dotNotation) => File.WriteAllText(path, dotNotation)
+                    : (Action<string, string>) ((path, dotNotation) => GraphVis.Save(dotNotation, path));
 
                 foreach (var dotNotation in dotNotations)
                 {
@@ -90,14 +104,20 @@ namespace GraphGen
             }
         }
 
-        private IEnumerable<(string pathPostfix, string contents)> GetDotNotations(FileInfo projectFile, string[] endNodes)
+        private IEnumerable<(string pathPostfix, string contents)> GetDotNotations(
+            FileInfo projectFile,
+            string[] targets,
+            string[] endNodes)
         {
             Console.WriteLine("Loading graph...");
 
             var sw = Stopwatch.StartNew();
             var graph = new ProjectGraph(projectFile.FullName, ProjectCollection.GlobalProjectCollection);
+            sw.Stop();
 
             Console.WriteLine($@"{projectFile} loaded {graph.ProjectNodes.Count} node(s) in {sw.ElapsedMilliseconds}ms.");
+
+            var entryTargetsPerNode = graph.GetTargetLists(targets);
 
             if (endNodes != null)
             {
@@ -105,10 +125,10 @@ namespace GraphGen
                 var paths = GraphPaths.FindAllPathsBetween(graph.GraphRoots, endGraphNodes);
 
                 var deduplicatedNodes = paths.SelectMany(p => p).ToHashSet();
-                yield return ($"_PathsEndingIn_{string.Join(",", endNodes)}", GraphVis.Create(deduplicatedNodes));
+                yield return ($"_PathsEndingIn_{string.Join(",", endNodes)}", GraphVis.Create(deduplicatedNodes, entryTargetsPerNode));
             }
-            
-                yield return ("", GraphVis.Create(graph));
+
+            yield return ("", GraphVis.Create(graph, entryTargetsPerNode));
         }
     }
 }

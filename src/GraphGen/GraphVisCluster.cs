@@ -37,10 +37,10 @@ namespace GraphGen
 
             var result = $@"
         subgraph cluster_{_clusterId} {{
-		style=filled;
-		color=lightgrey;
-		node [style=filled,color=white];
-		label = ""{_clusterLabel}"";";
+        style=filled;
+        color=lightgrey;
+        node [style=filled,color=white];
+        label = ""{_clusterLabel}"";";
 
             foreach (var p in _nodes)
             {
