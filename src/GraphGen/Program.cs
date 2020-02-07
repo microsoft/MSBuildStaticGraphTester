@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -31,6 +32,10 @@ namespace GraphGen
         [Option('t', "targets",
             HelpText = "Semicolon delimited list of entry targets. Default targets are used if this parameters is not set.")]
         public string Targets { get; set; }
+        
+        [Option('p', "global-properties",
+            HelpText = "Semicolon delimited list of <key>=<value> pairs of global properties.")]
+        public string GlobalProperties { get; set; }
 
         [Option('e', "end-nodes",
             HelpText =
@@ -73,6 +78,18 @@ namespace GraphGen
                     MSBuildLocator.RegisterMSBuildPath(args.MSBuildBinDirectory);
                 }
 
+                var globalProperties = string.IsNullOrEmpty(args.GlobalProperties)
+                    ? ImmutableDictionary<string, string>.Empty
+                    : args.GlobalProperties.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries).Select(
+                        propertyPair =>
+                        {
+                            var kvp = propertyPair.Split(new[] {'='}, StringSplitOptions.RemoveEmptyEntries);
+
+                            Trace.Assert(kvp.Length == 2, $"Expected <key>=<value> format in {propertyPair}");
+
+                            return (kvp[0], kvp[1]);
+                        }).ToImmutableDictionary(kvp => kvp.Item1, kvp => kvp.Item2);
+
                 var targets = string.IsNullOrEmpty(args.Targets)
                     ? null
                     : args.Targets.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
@@ -81,7 +98,7 @@ namespace GraphGen
                     ? null
                     : args.EndNodes.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
 
-                var dotNotations = new Program().GetDotNotations(new FileInfo(projectFile), targets, endNodes);
+                var dotNotations = new Program().GetDotNotations(new FileInfo(projectFile), globalProperties, targets, endNodes);
 
                 var renderingFunction = extension.EndsWith(".txt")
                     ? (path, dotNotation) => File.WriteAllText(path, dotNotation)
@@ -106,13 +123,14 @@ namespace GraphGen
 
         private IEnumerable<(string pathPostfix, string contents)> GetDotNotations(
             FileInfo projectFile,
+            ImmutableDictionary<string, string> globalProperties,
             string[] targets,
             string[] endNodes)
         {
             Console.WriteLine("Loading graph...");
 
             var sw = Stopwatch.StartNew();
-            var graph = new ProjectGraph(projectFile.FullName, ProjectCollection.GlobalProjectCollection);
+            var graph = new ProjectGraph(new ProjectGraphEntryPoint(projectFile.FullName, globalProperties), ProjectCollection.GlobalProjectCollection);
             sw.Stop();
 
             Console.WriteLine($@"{projectFile} loaded {graph.ProjectNodes.Count} node(s) in {sw.ElapsedMilliseconds}ms.");
