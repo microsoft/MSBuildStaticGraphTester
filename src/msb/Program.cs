@@ -14,6 +14,7 @@ using Microsoft.Build.Framework;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
 using Microsoft.Build.Graph;
+using System.Reflection;
 
 namespace msb
 {
@@ -125,6 +126,8 @@ namespace msb
             Trace.Assert(Directory.Exists(msbuildBinaries));
             MSBuildLocator.RegisterMSBuildPath(msbuildBinaries);
 
+            PrintMSBuildPath();
+
             _noConsoleLogger = bool.Parse(args[1]) == false;
 
             _executionTypeIndex = 2;
@@ -140,6 +143,11 @@ namespace msb
                 default:
                     throw new NotImplementedException();
             }
+        }
+
+        private static void PrintMSBuildPath()
+        {
+            Console.WriteLine($"\nLoading MSBuild from: {typeof(BuildManager).Assembly.Location}\n");
         }
 
         private static int BuildSingleProjectWithCaches(IReadOnlyList<string> args)
