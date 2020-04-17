@@ -135,6 +135,14 @@ namespace GraphGen
 
             Console.WriteLine($@"{projectFile} loaded {graph.ProjectNodes.Count} node(s) in {sw.ElapsedMilliseconds}ms.");
 
+            var edgeCount = 0;
+
+            foreach(var node in graph.ProjectNodes)
+            {
+                edgeCount += node.ProjectReferences.Count();
+            }
+
+            Console.WriteLine($"Edge count: {edgeCount}");
             var entryTargetsPerNode = graph.GetTargetLists(targets);
 
             if (endNodes != null)
